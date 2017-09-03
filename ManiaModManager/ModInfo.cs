@@ -10,6 +10,7 @@ namespace ManiaModManager
 		public string Author { get; set; }
 		public string Version { get; set; }
 		public string Description { get; set; }
+		public string DLLFile { get; set; }
 
 		public static IEnumerable<string> GetModFiles(DirectoryInfo directoryInfo)
 		{

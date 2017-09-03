@@ -30,7 +30,10 @@
     <ClInclude Include="FileSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MemAccess.h">
+    <ClInclude Include="include\ManiaModLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MemAccess.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

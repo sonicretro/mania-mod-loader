@@ -94,7 +94,8 @@
   <ItemGroup>
     <ClInclude Include="FileMap.hpp" />
     <ClInclude Include="FileSystem.h" />
-    <ClInclude Include="MemAccess.h" />
+    <ClInclude Include="include\ManiaModLoader.h" />
+    <ClInclude Include="include\MemAccess.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
