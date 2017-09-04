@@ -46,9 +46,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>include\;..\mod-loader-common\ModLoaderCommon\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>include\;..\mod-loader-common\ModLoaderCommon\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -92,6 +94,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Events.h" />
     <ClInclude Include="FileMap.hpp" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="include\ManiaModLoader.h" />
@@ -101,6 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="Events.cpp" />
     <ClCompile Include="FileMap.cpp" />
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="ManiaModLoader.cpp" />

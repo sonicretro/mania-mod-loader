@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Codes.cs" />
     <Compile Include="IniFile.cs" />
     <Compile Include="IniSerializer.cs" />
     <Compile Include="LoaderInfo.cs" />

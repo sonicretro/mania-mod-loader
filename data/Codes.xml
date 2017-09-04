@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<CodeList xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonicretro.org">
+  <Code name="Infinite Rings">
+    <CodeLine>
+      <Type>write16</Type>
+      <Address>00A4D644</Address>
+      <Value>999</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Infinite Lives">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>A4D650</Address>
+      <Value>99</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Freeze Timer">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00CD05AC</Address>
+      <Value>0</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Have Combine Ring">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00A4D65C</Address>
+      <Value>1</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Enable Debug Mode">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00CD05C8</Address>
+      <Value>1</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+</CodeList>
