@@ -60,9 +60,10 @@ static void __cdecl ProcessCodes()
 	MainGameLoop();
 }
 
-VoidFunc(sub_5BD1A0, 0x5BD1A0);
+VoidFunc(sub_5BD1A0, 0x5BD1C0);
 void InitMods()
 {
+
 	FILE *f_ini = _wfopen(L"mods\\ManiaModLoader.ini", L"r");
 	if (!f_ini)
 	{
@@ -320,7 +321,7 @@ void InitMods()
 	}
 
 	WriteJump((void*)0x5A08CE, CheckFile);
-	WriteCall((void*)0x5CAACF, ProcessCodes);
+	WriteCall((void*)0x5CAAFF, ProcessCodes);
 
 	sub_5BD1A0();
 }
@@ -337,7 +338,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		if (memcmp(verchk, (const char *)0x623730, sizeof(verchk)) != 0)
 			MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
 		else
-			WriteCall((void*)0x5CA557, InitMods);
+			WriteCall((void*)0x5CA587, InitMods);
 		break;
 	case DLL_PROCESS_DETACH:
 		break;
