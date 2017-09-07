@@ -60,24 +60,28 @@
     <CodeLine>
       <Type>write16</Type>
       <Address>00483756</Address>
+      <Value>5190</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write16</Type>
+      <Address>004837B6</Address>
       <Value>9090</Value>
       <ValueType>hex</ValueType>
     </CodeLine>
     <CodeLine>
       <Type>write8</Type>
-      <Address>004837B6</Address>
-      <Value>90</Value>
+      <Address>004837B8</Address>
+      <Value>59</Value>
       <ValueType>hex</ValueType>
-      <RepeatCount>3</RepeatCount>
     </CodeLine>
   </Code>
   <Code name="Enable Super Peel-Out">
     <CodeLine>
-      <Type>write16</Type>
+      <Type>writenop</Type>
       <Address>0047F717</Address>
-      <Value>9090</Value>
-      <ValueType>hex</ValueType>
-      <RepeatCount>3</RepeatCount>
+      <Value>6</Value>
+      <ValueType>decimal</ValueType>
     </CodeLine>
     <CodeLine>
       <Type>write32</Type>
@@ -102,11 +106,10 @@
   </Code>
   <Code name="Enable Super With No Emeralds" patch="true">
     <CodeLine>
-      <Type>write16</Type>
+      <Type>writenop</Type>
       <Address>004833A8</Address>
-      <Value>9090</Value>
-      <ValueType>hex</ValueType>
-      <RepeatCount>3</RepeatCount>
+      <Value>6</Value>
+      <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
   <Code name="Enable Super With 1 Ring" patch="true">
@@ -366,6 +369,146 @@
       <Type>write8</Type>
       <Address>00A4DBE4</Address>
       <Value>4</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Infinite Flight (Tails)" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>0048687D</Address>
+      <Value>6</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Infinite Insta-Shield Usage" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>00483758</Address>
+      <Value>10</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Infinite Flame Shield Usage" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>00483850</Address>
+      <Value>10</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Infinite Lightning Shield Usage" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>004838E6</Address>
+      <Value>10</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Instant Drop Dash" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>00483963</Address>
+      <Value>6</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Don't Lose Rings While Super" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>00482FD4</Address>
+      <Value>6</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Keep Super Forever*" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>00483010</Address>
+      <Value>10</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Disable Super Transformation Prompt" patch="true">
+    <CodeLine>
+      <Type>write16</Type>
+      <Address>0041F807</Address>
+      <Value>E990</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Never Drown" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>0042D30B</Address>
+      <Value>6</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Keep Flame Shield Underwater" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0042D289</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Keep Lightning Shield Underwater" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0042D2C2</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Bubble Shield Won't Save You From Drowning" patch="true">
+    <CodeLine>
+      <Type>write16</Type>
+      <Address>0042D2FB</Address>
+      <Value>E990</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Instantly Drown" patch="true">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00A4D7B4</Address>
+      <Value>1799</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Ignore Damage" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00481480</Address>
+      <Value>C3</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Die in One Hit" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>00481574</Address>
+      <Value>6</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>0048157D</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>00481582</Address>
+      <Value>6</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="AI Player Dies When Hit" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0048153B</Address>
+      <Value>3</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
