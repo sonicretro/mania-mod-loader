@@ -30,7 +30,6 @@
         {
 			this.components = new System.ComponentModel.Container();
 			System.Windows.Forms.Label label1;
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
 			this.buttonRefreshModList = new System.Windows.Forms.Button();
 			this.modDescription = new System.Windows.Forms.Label();
 			this.modListView = new System.Windows.Forms.ListView();
@@ -47,11 +46,11 @@
 			this.tabPage2 = new System.Windows.Forms.TabPage();
 			this.codesCheckedListBox = new System.Windows.Forms.CheckedListBox();
 			this.tabPage4 = new System.Windows.Forms.TabPage();
+			this.startingScene = new System.Windows.Forms.ComboBox();
+			this.enableDebugConsole = new System.Windows.Forms.CheckBox();
 			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
 			this.modContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.openFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.enableDebugConsole = new System.Windows.Forms.CheckBox();
-			this.startingScene = new System.Windows.Forms.ComboBox();
 			label1 = new System.Windows.Forms.Label();
 			this.tabControl1.SuspendLayout();
 			this.tabPage1.SuspendLayout();
@@ -59,6 +58,15 @@
 			this.tabPage4.SuspendLayout();
 			this.modContextMenu.SuspendLayout();
 			this.SuspendLayout();
+			// 
+			// label1
+			// 
+			label1.AutoSize = true;
+			label1.Location = new System.Drawing.Point(6, 33);
+			label1.Name = "label1";
+			label1.Size = new System.Drawing.Size(80, 13);
+			label1.TabIndex = 1;
+			label1.Text = "Starting Scene:";
 			// 
 			// buttonRefreshModList
 			// 
@@ -246,39 +254,6 @@
 			this.tabPage4.Text = "Options";
 			this.tabPage4.UseVisualStyleBackColor = true;
 			// 
-			// modContextMenu
-			// 
-			this.modContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.openFolderToolStripMenuItem});
-			this.modContextMenu.Name = "modContextMenu";
-			this.modContextMenu.Size = new System.Drawing.Size(138, 26);
-			// 
-			// openFolderToolStripMenuItem
-			// 
-			this.openFolderToolStripMenuItem.Name = "openFolderToolStripMenuItem";
-			this.openFolderToolStripMenuItem.Size = new System.Drawing.Size(137, 22);
-			this.openFolderToolStripMenuItem.Text = "Open folder";
-			this.openFolderToolStripMenuItem.Click += new System.EventHandler(this.openFolderToolStripMenuItem_Click);
-			// 
-			// enableDebugConsole
-			// 
-			this.enableDebugConsole.AutoSize = true;
-			this.enableDebugConsole.Location = new System.Drawing.Point(7, 7);
-			this.enableDebugConsole.Name = "enableDebugConsole";
-			this.enableDebugConsole.Size = new System.Drawing.Size(135, 17);
-			this.enableDebugConsole.TabIndex = 0;
-			this.enableDebugConsole.Text = "Enable Debug Console";
-			this.enableDebugConsole.UseVisualStyleBackColor = true;
-			// 
-			// label1
-			// 
-			label1.AutoSize = true;
-			label1.Location = new System.Drawing.Point(6, 33);
-			label1.Name = "label1";
-			label1.Size = new System.Drawing.Size(80, 13);
-			label1.TabIndex = 1;
-			label1.Text = "Starting Scene:";
-			// 
 			// startingScene
 			// 
 			this.startingScene.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -380,6 +355,30 @@
 			this.startingScene.Size = new System.Drawing.Size(191, 21);
 			this.startingScene.TabIndex = 2;
 			// 
+			// enableDebugConsole
+			// 
+			this.enableDebugConsole.AutoSize = true;
+			this.enableDebugConsole.Location = new System.Drawing.Point(7, 7);
+			this.enableDebugConsole.Name = "enableDebugConsole";
+			this.enableDebugConsole.Size = new System.Drawing.Size(135, 17);
+			this.enableDebugConsole.TabIndex = 0;
+			this.enableDebugConsole.Text = "Enable Debug Console";
+			this.enableDebugConsole.UseVisualStyleBackColor = true;
+			// 
+			// modContextMenu
+			// 
+			this.modContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.openFolderToolStripMenuItem});
+			this.modContextMenu.Name = "modContextMenu";
+			this.modContextMenu.Size = new System.Drawing.Size(138, 26);
+			// 
+			// openFolderToolStripMenuItem
+			// 
+			this.openFolderToolStripMenuItem.Name = "openFolderToolStripMenuItem";
+			this.openFolderToolStripMenuItem.Size = new System.Drawing.Size(137, 22);
+			this.openFolderToolStripMenuItem.Text = "Open folder";
+			this.openFolderToolStripMenuItem.Click += new System.EventHandler(this.openFolderToolStripMenuItem_Click);
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -389,12 +388,11 @@
 			this.Controls.Add(this.installButton);
 			this.Controls.Add(this.saveAndPlayButton);
 			this.Controls.Add(this.saveButton);
-			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.MinimumSize = new System.Drawing.Size(400, 400);
 			this.Name = "MainForm";
 			this.Padding = new System.Windows.Forms.Padding(0, 0, 0, 3);
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
-			this.Text = "SADX Mod Manager";
+			this.Text = "Mania Mod Manager";
 			this.Load += new System.EventHandler(this.MainForm_Load);
 			this.tabControl1.ResumeLayout(false);
 			this.tabPage1.ResumeLayout(false);
