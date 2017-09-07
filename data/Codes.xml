@@ -1,9 +1,17 @@
 <?xml version="1.0"?>
 <CodeList xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonicretro.org">
-  <Code name="Infinite Rings">
+  <Code name="P1 Infinite Rings">
     <CodeLine>
       <Type>write16</Type>
-      <Address>00A4D644</Address>
+      <Address>00A4D784</Address>
+      <Value>999</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="P2 Infinite Rings">
+    <CodeLine>
+      <Type>write16</Type>
+      <Address>00A4DBDC</Address>
       <Value>999</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
@@ -11,7 +19,7 @@
   <Code name="Infinite Lives">
     <CodeLine>
       <Type>write8</Type>
-      <Address>A4D650</Address>
+      <Address>A4D790</Address>
       <Value>99</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
@@ -19,15 +27,23 @@
   <Code name="Freeze Timer">
     <CodeLine>
       <Type>write32</Type>
-      <Address>00CD05AC</Address>
+      <Address>00CD06EC</Address>
       <Value>0</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
-  <Code name="Always Have Combine Ring">
+  <Code name="P1 Always Have Combine Ring">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00A4D65C</Address>
+      <Address>00A4D79C</Address>
+      <Value>1</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="P2 Always Have Combine Ring">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00A4DBF4</Address>
       <Value>1</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
@@ -35,7 +51,7 @@
   <Code name="Enable Debug Mode">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00CD05C8</Address>
+      <Address>00CD0708</Address>
       <Value>1</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
@@ -43,13 +59,13 @@
   <Code name="Enable Insta-Shield and Drop Dash" patch="true">
     <CodeLine>
       <Type>write16</Type>
-      <Address>004836F6</Address>
+      <Address>00483756</Address>
       <Value>9090</Value>
       <ValueType>hex</ValueType>
     </CodeLine>
     <CodeLine>
       <Type>write8</Type>
-      <Address>00483756</Address>
+      <Address>004837B6</Address>
       <Value>90</Value>
       <ValueType>hex</ValueType>
       <RepeatCount>3</RepeatCount>
@@ -58,22 +74,28 @@
   <Code name="Enable Super Peel-Out">
     <CodeLine>
       <Type>write16</Type>
-      <Address>0047F6B7</Address>
+      <Address>0047F717</Address>
       <Value>9090</Value>
       <ValueType>hex</ValueType>
       <RepeatCount>3</RepeatCount>
     </CodeLine>
     <CodeLine>
       <Type>write32</Type>
-      <Address>00A4D74C</Address>
-      <Value>00483B30</Value>
+      <Address>00A4D88C</Address>
+      <Value>00483B90</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00A4DCE4</Address>
+      <Value>00483B90</Value>
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
   <Code name="Disable Super Music" patch="true">
     <CodeLine>
       <Type>write8</Type>
-      <Address>004835CE</Address>
+      <Address>0048362E</Address>
       <Value>EB</Value>
       <ValueType>hex</ValueType>
     </CodeLine>
@@ -81,15 +103,16 @@
   <Code name="Enable Super With No Emeralds" patch="true">
     <CodeLine>
       <Type>write16</Type>
-      <Address>00483348</Address>
+      <Address>004833A8</Address>
       <Value>9090</Value>
       <ValueType>hex</ValueType>
+      <RepeatCount>3</RepeatCount>
     </CodeLine>
   </Code>
   <Code name="Enable Super With 1 Ring" patch="true">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00483354</Address>
+      <Address>004833B4</Address>
       <Value>1</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
@@ -97,7 +120,7 @@
   <Code name="P1 Always Sonic">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00D84670</Address>
+      <Address>00D847B0</Address>
       <Pointer>true</Pointer>
       <Offsets>
         <Offset>4</Offset>
@@ -109,7 +132,7 @@
   <Code name="P1 Always Tails">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00D84670</Address>
+      <Address>00D847B0</Address>
       <Pointer>true</Pointer>
       <Offsets>
         <Offset>4</Offset>
@@ -121,7 +144,7 @@
   <Code name="P1 Always Knuckles">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00D84670</Address>
+      <Address>00D847B0</Address>
       <Pointer>true</Pointer>
       <Offsets>
         <Offset>4</Offset>
@@ -133,7 +156,7 @@
   <Code name="Disable P2 (Mania Mode)">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00D84670</Address>
+      <Address>00D847B0</Address>
       <Pointer>true</Pointer>
       <Offsets>
         <Offset>5</Offset>
@@ -145,7 +168,7 @@
   <Code name="P2 Always Sonic">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00D84670</Address>
+      <Address>00D847B0</Address>
       <Pointer>true</Pointer>
       <Offsets>
         <Offset>5</Offset>
@@ -157,7 +180,7 @@
   <Code name="P2 Always Tails">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00D84670</Address>
+      <Address>00D847B0</Address>
       <Pointer>true</Pointer>
       <Offsets>
         <Offset>5</Offset>
@@ -169,7 +192,7 @@
   <Code name="P2 Always Knuckles">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00D84670</Address>
+      <Address>00D847B0</Address>
       <Pointer>true</Pointer>
       <Offsets>
         <Offset>5</Offset>
@@ -181,114 +204,114 @@
   <Code name="P1 Has Sonic's Abilities">
     <CodeLine>
       <Type>write32</Type>
-      <Address>00A4D748</Address>
-      <Value>00483630</Value>
+      <Address>00A4D888</Address>
+      <Value>00483690</Value>
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
   <Code name="P1 Has Tails' Abilities">
     <CodeLine>
       <Type>write32</Type>
-      <Address>00A4D748</Address>
-      <Value>00483970</Value>
+      <Address>00A4D888</Address>
+      <Value>004839D0</Value>
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
   <Code name="P1 Has Knuckles' Abilities">
     <CodeLine>
       <Type>write32</Type>
-      <Address>00A4D748</Address>
-      <Value>00483A40</Value>
+      <Address>00A4D888</Address>
+      <Value>00483AA0</Value>
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
   <Code name="P1 Has ERZ Super Sonic's Abilities">
     <CodeLine>
       <Type>write32</Type>
-      <Address>00A4D748</Address>
-      <Value>017ECFF0</Value>
+      <Address>00A4D888</Address>
+      <Value>01989290</Value>
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
   <Code name="P2 Has Sonic's Abilities">
     <CodeLine>
       <Type>write32</Type>
-      <Address>00A4DBA0</Address>
-      <Value>00483630</Value>
+      <Address>00A4DCE0</Address>
+      <Value>00483690</Value>
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
   <Code name="P2 Has Tails' Abilities">
     <CodeLine>
       <Type>write32</Type>
-      <Address>00A4DBA0</Address>
-      <Value>00483970</Value>
+      <Address>00A4DCE0</Address>
+      <Value>004839D0</Value>
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
   <Code name="P2 Has Knuckles' Abilities">
     <CodeLine>
       <Type>write32</Type>
-      <Address>00A4DBA0</Address>
-      <Value>00483A40</Value>
+      <Address>00A4DCE0</Address>
+      <Value>00483AA0</Value>
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
   <Code name="P2 Has ERZ Super Sonic's Abilities">
     <CodeLine>
       <Type>write32</Type>
-      <Address>00A4DBA0</Address>
-      <Value>017ECFF0</Value>
+      <Address>00A4DCE0</Address>
+      <Value>01989290</Value>
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
   <Code name="Super Forms Can Fly">
     <CodeLine>
       <Type>ifeq8</Type>
-      <Address>00A4D6A4</Address>
+      <Address>00A4D7E4</Address>
       <Value>2</Value>
       <ValueType>decimal</ValueType>
       <TrueLines>
         <CodeLine>
           <Type>write32</Type>
-          <Address>00A4D748</Address>
-          <Value>017ECFF0</Value>
+          <Address>00A4D888</Address>
+          <Value>01989290</Value>
           <ValueType>hex</ValueType>
         </CodeLine>
       </TrueLines>
       <FalseLines>
         <CodeLine>
           <Type>ifeq8</Type>
-          <Address>00A4D640</Address>
+          <Address>00A4D780</Address>
           <Value>2</Value>
           <ValueType>decimal</ValueType>
           <TrueLines>
             <CodeLine>
               <Type>write32</Type>
-              <Address>00A4D748</Address>
-              <Value>00483970</Value>
+              <Address>00A4D888</Address>
+              <Value>004839D0</Value>
               <ValueType>hex</ValueType>
             </CodeLine>
           </TrueLines>
           <FalseLines>
             <CodeLine>
               <Type>ifeq8</Type>
-              <Address>00A4D640</Address>
+              <Address>00A4D780</Address>
               <Value>4</Value>
               <ValueType>decimal</ValueType>
               <TrueLines>
                 <CodeLine>
                   <Type>write32</Type>
-                  <Address>00A4D748</Address>
-                  <Value>00483A40</Value>
+                  <Address>00A4D888</Address>
+                  <Value>00483AA0</Value>
                   <ValueType>hex</ValueType>
                 </CodeLine>
               </TrueLines>
               <FalseLines>
                 <CodeLine>
                   <Type>write32</Type>
-                  <Address>00A4D748</Address>
-                  <Value>00483630</Value>
+                  <Address>00A4D888</Address>
+                  <Value>00483690</Value>
                   <ValueType>hex</ValueType>
                 </CodeLine>
               </FalseLines>
@@ -301,7 +324,7 @@
   <Code name="P1 Have Bubble Shield Effects (No Protection)">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00A4D64C</Address>
+      <Address>00A4D78C</Address>
       <Value>2</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
@@ -309,7 +332,7 @@
   <Code name="P1 Have Flame Shield Effects (No Protection)">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00A4D64C</Address>
+      <Address>00A4D78C</Address>
       <Value>3</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
@@ -317,7 +340,7 @@
   <Code name="P1 Have Lightning Shield Effects (No Protection)">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00A4D64C</Address>
+      <Address>00A4D78C</Address>
       <Value>4</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
@@ -325,7 +348,7 @@
   <Code name="P2 Have Bubble Shield Effects (No Protection)">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00A4DAA4</Address>
+      <Address>00A4DBE4</Address>
       <Value>2</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
@@ -333,7 +356,7 @@
   <Code name="P2 Have Flame Shield Effects (No Protection)">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00A4DAA4</Address>
+      <Address>00A4DBE4</Address>
       <Value>3</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
@@ -341,7 +364,7 @@
   <Code name="P2 Have Lightning Shield Effects (No Protection)">
     <CodeLine>
       <Type>write8</Type>
-      <Address>00A4DAA4</Address>
+      <Address>00A4DBE4</Address>
       <Value>4</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
