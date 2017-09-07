@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdio>
 #include "MemAccess.h"
 
 static const int ModLoaderVer = 1;
@@ -61,7 +62,7 @@ enum Characters
 	Characters_Knuckles
 };
 
-struct __declspec(align(1)) fileinfo
+struct fileinfo
 {
 	FILE *file;
 	_DWORD dword4;
@@ -89,35 +90,40 @@ struct fileheader
 	char anonymous_8[3];
 };
 
-struct __declspec(align(16)) PlayerData
+struct PlayerData
 {
-	_BYTE gap0[2];
+	char field_0[2];
 	__int16 XPos;
-	_BYTE gap4[1];
-	__unaligned __declspec(align(1)) __int16 YPos;
+	char field_4[2];
+	__int16 YPos;
 	_DWORD dword8;
 	_DWORD dwordC;
 	int XSpeed;
 	int YSpeed;
-	_BYTE gap18[40];
+	char field_18[40];
 	_DWORD dword40;
 	_BYTE gap44[8];
 	_BYTE byte4C;
-	__declspec(align(2)) _BYTE byte4E;
+	char field_4D;
+	_BYTE byte4E;
 	_BYTE byte4F;
 	_BYTE gap50[2];
 	_BYTE byte52;
-	__declspec(align(2)) _BYTE byte54;
+	char field_53;
+	_BYTE byte54;
+	char field_55[3];
 	_DWORD dword58;
 	_BYTE gap5C[60];
 	_DWORD dword98;
 	_DWORD dword9C;
 	_DWORD dwordA0;
-	__declspec(align(16)) _WORD wordB0;
+	char field_A4[12];
+	_WORD wordB0;
 	_WORD wordB2;
 	_BYTE gapB4[2];
 	_WORD wordB6;
-	__declspec(align(16)) _DWORD Character;
+	char field_B8[8];
+	_DWORD Character;
 	_DWORD RingCount;
 	_DWORD dwordC8;
 	_DWORD ShieldAbility;
@@ -125,9 +131,9 @@ struct __declspec(align(16)) PlayerData
 	_DWORD dwordD4;
 	_DWORD dwordD8;
 	_DWORD CombineRing;
-	_BYTE gapE0[68];
+	char field_E0[68];
 	int SuperMode;
-	_BYTE gap128[12];
+	char field_128[12];
 	_DWORD dword134;
 	_BYTE gap138[4];
 	_DWORD dword13C;
@@ -141,7 +147,7 @@ struct __declspec(align(16)) PlayerData
 	_BYTE gap194[8];
 	_DWORD dword19C;
 	_DWORD dword1A0;
-	_BYTE gap1A4[32];
+	char field_1A4[32];
 	int JumpAbilityFlag;
 	void(__cdecl *JumpAbilities)();
 	void(__cdecl *PeelOutThing)();
