@@ -528,4 +528,20 @@
       <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
+  <Code name="Keep Control During Cutscenes">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00A4D85C</Address>
+      <Value>47FDD0</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Don't Skip Cutscenes In Debug Mode" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004556BD</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
 </CodeList>
