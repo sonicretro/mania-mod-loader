@@ -84,16 +84,32 @@
       <ValueType>decimal</ValueType>
     </CodeLine>
     <CodeLine>
-      <Type>write32</Type>
+      <Type>ifeq32</Type>
       <Address>00A4D88C</Address>
-      <Value>00483B90</Value>
+      <Value>0</Value>
       <ValueType>hex</ValueType>
+      <TrueLines>
+        <CodeLine>
+          <Type>write32</Type>
+          <Address>00A4D88C</Address>
+          <Value>00483B90</Value>
+          <ValueType>hex</ValueType>
+        </CodeLine>
+      </TrueLines>
     </CodeLine>
     <CodeLine>
-      <Type>write32</Type>
+      <Type>ifeq32</Type>
       <Address>00A4DCE4</Address>
-      <Value>00483B90</Value>
+      <Value>0</Value>
       <ValueType>hex</ValueType>
+      <TrueLines>
+        <CodeLine>
+          <Type>write32</Type>
+          <Address>00A4DCE4</Address>
+          <Value>00483B90</Value>
+          <ValueType>hex</ValueType>
+        </CodeLine>
+      </TrueLines>
     </CodeLine>
   </Code>
   <Code name="Disable Super Music" patch="true">
