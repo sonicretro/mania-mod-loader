@@ -1,5 +1,6 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "stdafx.h"
+#include <dbghelp.h>
 #include <fstream>
 #include <memory>
 #include <algorithm>
@@ -18,6 +19,36 @@ using std::string;
 using std::wstring;
 using std::unique_ptr;
 using std::vector;
+
+/**
+* Change write protection of the .xtext section.
+* @param protect True to protect; false to unprotect.
+*/
+static void SetXTextWriteProtection(bool protect)
+{
+	// Reference: https://stackoverflow.com/questions/22588151/how-to-find-data-segment-and-code-segment-range-in-program
+
+	// module handle. (main executable)
+	HMODULE hModule = GetModuleHandle(nullptr);
+
+	// Get the PE header.
+	const IMAGE_NT_HEADERS *const pNtHdr = ImageNtHeader(hModule);
+	// Section headers are located immediately after the PE header.
+	const IMAGE_SECTION_HEADER *pSectionHdr = reinterpret_cast<const IMAGE_SECTION_HEADER*>(pNtHdr + 1);
+
+	// Find the .rdata section.
+	for (unsigned int i = pNtHdr->FileHeader.NumberOfSections; i > 0; i--, pSectionHdr++)
+	{
+		if (strncmp(reinterpret_cast<const char*>(pSectionHdr->Name), ".xtext", sizeof(pSectionHdr->Name)) != 0)
+			continue;
+
+		const intptr_t vaddr = reinterpret_cast<intptr_t>(hModule) + pSectionHdr->VirtualAddress;
+		DWORD flOldProtect;
+		DWORD flNewProtect = (protect ? PAGE_READONLY : PAGE_WRITECOPY);
+		VirtualProtect(reinterpret_cast<void*>(vaddr), pSectionHdr->Misc.VirtualSize, flNewProtect, &flOldProtect);
+		return;
+	}
+}
 
 FileMap fileMap;
 
@@ -71,6 +102,8 @@ void InitMods()
 	}
 	unique_ptr<IniFile> ini(new IniFile(f_ini));
 	fclose(f_ini);
+
+	SetXTextWriteProtection(false);
 
 	// Get exe's path and filename.
 	wchar_t pathbuf[MAX_PATH];
