@@ -452,6 +452,14 @@
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
+  <Code name="Super Sonic Uses Sonic's Sprites" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004835A0</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
   <Code name="Never Drown" patch="true">
     <CodeLine>
       <Type>writenop</Type>
@@ -542,6 +550,148 @@
       <Address>004556BD</Address>
       <Value>EB</Value>
       <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Disable HUD" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0041F4A0</Address>
+      <Value>C3</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Special Stage: Grass Has No Effect" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00557F71</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Special Stage: Start At Mach 3" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00559049</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Special Stage: Don't Lose Rings With Time" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>032E649F</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Bonus Stage: Only Need One Sphere" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>004B4AB7</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Bonus Stage: Always Get Gold Medal" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004B4535</Address>
+      <Value>13</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Bonus Stage: Never Speed Up" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004B4EA8</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>0061CF9B</Address>
+      <Value>67676F2E</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0061CF9F</Address>
+      <Value>00</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>01FAAAB2</Address>
+      <Value>407077</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Bonus Stage: Remove Speed Cap" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>004B4EA8</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Bonus Stage: Speed Up Twice As Quickly" patch="true">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>01FCB6F0</Address>
+      <Value>900</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Bonus Stage: Start At Max Speed" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004B1C3B</Address>
+      <Value>32</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004B1C45</Address>
+      <Value>32</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004B1CCF</Address>
+      <Value>32</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004B1CD9</Address>
+      <Value>32</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Bonus Stage: Start At Double Max Speed" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004B1C3B</Address>
+      <Value>64</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004B1C45</Address>
+      <Value>64</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004B1CCF</Address>
+      <Value>64</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004B1CD9</Address>
+      <Value>64</Value>
+      <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
 </CodeList>
