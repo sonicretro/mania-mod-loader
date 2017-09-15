@@ -112,6 +112,14 @@
       </TrueLines>
     </CodeLine>
   </Code>
+  <Code name="Disable Super Peel-Out Animation" patch="true">
+    <CodeLine>
+      <Type>write16</Type>
+      <Address>0047F728</Address>
+      <Value>62EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
   <Code name="Disable Super Music" patch="true">
     <CodeLine>
       <Type>write8</Type>
@@ -557,6 +565,14 @@
       <Type>write8</Type>
       <Address>0041F4A0</Address>
       <Value>C3</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Don't Get Extra Life From Rings" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004812A8</Address>
+      <Value>EB</Value>
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
