@@ -228,6 +228,20 @@
       <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
+  <Code name="Fix For ERZ Super Sonic Abilities" patch="true">
+    <CodeLine>
+      <Type>write16</Type>
+      <Address>0047E922</Address>
+      <Value>38EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>0047E95E</Address>
+      <Value>7</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
   <Code name="P1 Has Sonic's Abilities">
     <CodeLine>
       <Type>write32</Type>
@@ -308,6 +322,20 @@
       </TrueLines>
       <FalseLines>
         <CodeLine>
+          <Type>ifeq32</Type>
+          <Address>00A4D718</Address>
+          <Value>0047E4B0</Value>
+          <ValueType>hex</ValueType>
+          <TrueLines>
+            <CodeLine>
+              <Type>write32</Type>
+              <Address>00A4D718</Address>
+              <Value>00484C30</Value>
+              <ValueType>hex</ValueType>
+            </CodeLine>
+          </TrueLines>
+        </CodeLine>
+        <CodeLine>
           <Type>ifeq8</Type>
           <Address>00A4D780</Address>
           <Value>2</Value>
@@ -346,6 +374,20 @@
           </FalseLines>
         </CodeLine>
       </FalseLines>
+    </CodeLine>
+  </Code>
+  <Code name="Super Dash Costs No Rings" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>0047E752</Address>
+      <Value>6</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write16</Type>
+      <Address>0047E873</Address>
+      <Value>11EB</Value>
+      <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
   <Code name="P1 Have Bubble Shield Effects (No Protection)">
@@ -574,6 +616,72 @@
       <Address>004812A8</Address>
       <Value>EB</Value>
       <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Anyone Can Break Breakable Walls By Touching Them" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>00444743</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Disable Time Over" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0045787F</Address>
+      <Value>E9</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00457880</Address>
+      <Value>89</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0041F504</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="15 Minute Time Limit" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0045786E</Address>
+      <Value>15</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0045787A</Address>
+      <Value>14</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0041F503</Address>
+      <Value>14</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0041F62A</Address>
+      <Value>3C</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0041F666</Address>
+      <Value>69</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0041F6A7</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
   <Code name="Special Stage: Grass Has No Effect" patch="true">
