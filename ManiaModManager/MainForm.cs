@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Windows.Forms;
 using IniFile;
+using ModManagerCommon;
+using ValueType = ModManagerCommon.ValueType;
 
 namespace ManiaModManager
 {
@@ -23,7 +22,7 @@ namespace ManiaModManager
 		const string datadllpath = "d3d9.dll";
 		const string loaderinipath = "mods/ManiaModLoader.ini";
 		const string loaderdllpath = "mods/ManiaModLoader.dll";
-		LoaderInfo loaderini;
+		ManiaLoaderInfo loaderini;
 		Dictionary<string, ModInfo> mods;
 		const string codexmlpath = "mods/Codes.xml";
 		const string codedatpath = "mods/Codes.dat";
@@ -42,7 +41,7 @@ namespace ManiaModManager
 		private void MainForm_Load(object sender, EventArgs e)
 		{
 			SetDoubleBuffered(modListView, true);
-			loaderini = File.Exists(loaderinipath) ? IniSerializer.Deserialize<LoaderInfo>(loaderinipath) : new LoaderInfo();
+			loaderini = File.Exists(loaderinipath) ? IniSerializer.Deserialize<ManiaLoaderInfo>(loaderinipath) : new ManiaLoaderInfo();
 
 			try { mainCodes = CodeList.Load(codexmlpath); }
 			catch { mainCodes = new CodeList() { Codes = new List<Code>() }; }
@@ -73,6 +72,37 @@ namespace ManiaModManager
 				if (result == DialogResult.Yes)
 					File.Copy(loaderdllpath, datadllpath, true);
 			}
+		}
+
+		private void MainForm_Shown(object sender, EventArgs e)
+		{
+			List<string> uris = Program.UriQueue.GetUris();
+
+			foreach (string str in uris)
+			{
+				MessageBox.Show(this, str);
+			}
+
+			Program.UriQueue.UriEnqueued += UriQueueOnUriEnqueued;
+		}
+
+		private void UriQueueOnUriEnqueued(object sender, OnUriEnqueuedArgs args)
+		{
+			args.Handled = true;
+
+			if (InvokeRequired)
+			{
+				Invoke((Action<object, OnUriEnqueuedArgs>)UriQueueOnUriEnqueued, sender, args);
+				return;
+			}
+
+			if (WindowState == FormWindowState.Minimized)
+			{
+				WindowState = FormWindowState.Normal;
+			}
+
+			Activate();
+			MessageBox.Show(this, args.Uri);
 		}
 
 		private void LoadModList()
