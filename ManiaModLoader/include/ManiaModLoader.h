@@ -154,7 +154,6 @@ struct PlayerData
 };
 
 // define function and variable pointers here
-DataPointer(int, ReadFromPack, 0x631C10);
 DataPointer(int, ConsoleEnabled, 0x6341A4);
 DataPointer(PlayerData, Player1Data, 0xA4D6C0);
 DataPointer(PlayerData, Player2Data, 0xA4DB18);
