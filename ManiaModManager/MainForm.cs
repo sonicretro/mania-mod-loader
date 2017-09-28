@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Windows.Forms;
 using IniFile;
 using ModManagerCommon;
+using ModManagerCommon.Forms;
 using ValueType = ModManagerCommon.ValueType;
 
 namespace ManiaModManager
@@ -74,6 +75,71 @@ namespace ManiaModManager
 			}
 		}
 
+		private void HandleUri(string uri)
+		{
+			if (WindowState == FormWindowState.Minimized)
+			{
+				WindowState = FormWindowState.Normal;
+			}
+
+			Activate();
+			DialogResult result = MessageBox.Show(this, uri, "Mod Download", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+			if (result != DialogResult.Yes)
+			{
+				return;
+			}
+
+			string updatePath = Path.Combine("mods", ".updates");
+
+			do
+			{
+				try
+				{
+					result = DialogResult.Cancel;
+					if (!Directory.Exists(updatePath))
+					{
+						Directory.CreateDirectory(updatePath);
+					}
+				}
+				catch (Exception ex)
+				{
+					result = MessageBox.Show(this, "Failed to create temporary update directory:\n" + ex.Message
+					                               + "\n\nWould you like to retry?", "Directory Creation Failed", MessageBoxButtons.RetryCancel);
+				}
+			} while (result == DialogResult.Retry);
+
+			var fields = uri.Substring("smmm:".Length).Split(',');
+
+			// TODO: query banana api here
+			var updates = new List<ModDownload>
+			{
+				new ModDownload(new ModInfo(), "mods/test", fields[0], null, 0)
+			};
+
+			using (var progress = new DownloadDialog(updates, updatePath))
+			{
+				progress.ShowDialog(this);
+			}
+
+			do
+			{
+				try
+				{
+					result = DialogResult.Cancel;
+					Directory.Delete(updatePath, true);
+				}
+				catch (Exception ex)
+				{
+					result = MessageBox.Show(this, "Failed to remove temporary update directory:\n" + ex.Message
+					                               + "\n\nWould you like to retry? You can remove the directory manually later.",
+						"Directory Deletion Failed", MessageBoxButtons.RetryCancel);
+				}
+			} while (result == DialogResult.Retry);
+
+			LoadModList();
+		}
+
 		private void MainForm_Shown(object sender, EventArgs e)
 		{
 			List<string> uris = Program.UriQueue.GetUris();
@@ -96,13 +162,7 @@ namespace ManiaModManager
 				return;
 			}
 
-			if (WindowState == FormWindowState.Minimized)
-			{
-				WindowState = FormWindowState.Normal;
-			}
-
-			Activate();
-			MessageBox.Show(this, args.Uri);
+			HandleUri(args.Uri);
 		}
 
 		private void LoadModList()
