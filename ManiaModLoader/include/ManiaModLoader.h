@@ -3,7 +3,7 @@
 #include "MemAccess.h"
 
 static const int ModLoaderVer = 1;
-static const int GameVer = 2;
+static const int GameVer = 3;
 
 struct PatchInfo
 {
@@ -155,25 +155,25 @@ struct PlayerData
 
 // define function and variable pointers here
 DataPointer(int, ConsoleEnabled, 0x6341A4);
-DataPointer(PlayerData, Player1Data, 0xA4D6C0);
-DataPointer(PlayerData, Player2Data, 0xA4DB18);
-DataPointer(int, TimerCentiframes, 0xCD06EC);
-DataPointer(int, DebugEnabled, 0xCD0708);
-DataPointer(int, UpdateTimer, 0xCD0710);
-DataPointer(char, GameMode, 0xCD0716);
-DataPointer(char, TimerCentiseconds, 0xCD0717);
-DataPointer(char, TimerSeconds, 0xCD0718);
-DataPointer(char, TimerMinutes, 0xCD0719);
+DataPointer(PlayerData, Player1Data, 0xA4C6C0);
+DataPointer(PlayerData, Player2Data, 0xA4CB18);
+DataPointer(int, TimerCentiframes, 0xCCF6EC);
+DataPointer(int, DebugEnabled, 0xCCF708);
+DataPointer(int, UpdateTimer, 0xCCF710);
+DataPointer(char, GameMode, 0xCCF716);
+DataPointer(char, TimerCentiseconds, 0xCCF717);
+DataPointer(char, TimerSeconds, 0xCCF718);
+DataPointer(char, TimerMinutes, 0xCCF719);
 
 FunctionPointer(int, PrintDebug, (const char *fmt, ...), 0x401140);
-VoidFunc(InitPlayer, 0x47F650);
-FastcallFunctionPointer(int, Player_CheckGoSuper, (PlayerData *a1, int emeraldflags), 0x483360);
-VoidFunc(Sonic_JumpAbilities, 0x483690);
-VoidFunc(Tails_JumpAbilities, 0x4839D0);
-VoidFunc(Knuckles_JumpAbilities, 0x483AA0);
-VoidFunc(Sonic_CheckDoPeelOut, 0x483B90);
-FastcallFunctionPointer(void, HashFilename, (char *filename, int *hash), 0x5A0130);
-FastcallFunctionPointer(int, LoadFile, (char *filename, fileinfo *info), 0x5A0860);
-VoidFunc(MainGameLoop, 0x5A1EC0);
-VoidFunc(IncrementTimer, 0x5A53F0);
-VoidFunc(ERZSuperSonic_JumpAbilities, 0x1989290);
+VoidFunc(InitPlayer, 0x47F560);
+FastcallFunctionPointer(int, Player_CheckGoSuper, (PlayerData *a1, int emeraldflags), 0x4832A0);
+VoidFunc(Sonic_JumpAbilities, 0x4835D0);
+VoidFunc(Tails_JumpAbilities, 0x483910);
+VoidFunc(Knuckles_JumpAbilities, 0x4839E0);
+VoidFunc(Sonic_CheckDoPeelOut, 0x483AD0);
+//FastcallFunctionPointer(void, HashFilename, (char *filename, int *hash), 0x5A0130);
+FastcallFunctionPointer(int, LoadFile, (char *filename, fileinfo *info), 0x5A0760);
+VoidFunc(MainGameLoop, 0x5A1DC0);
+VoidFunc(IncrementTimer, 0x5A5290);
+//VoidFunc(ERZSuperSonic_JumpAbilities, 0x1989290);

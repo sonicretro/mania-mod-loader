@@ -356,7 +356,7 @@ void InitMods()
     
     
     WriteJump((void*)0x5A07CE, CheckFile);
-    //WriteCall((void*)0x5CAA0F, ProcessCodes);
+    WriteCall((void*)0x5CAA0F, ProcessCodes);
 
     sub_5BD0E0();
 }
