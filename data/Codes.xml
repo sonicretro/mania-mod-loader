@@ -56,4 +56,84 @@
       <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
+  <Code name="Enable Insta-Shield and Drop Dash" patch="true">
+    <CodeLine>
+      <Type>write16</Type>
+      <Address>00483696</Address>
+      <Value>5190</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write16</Type>
+      <Address>004836F6</Address>
+      <Value>9090</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004836F8</Address>
+      <Value>59</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Disable Super Peel-Out Animation" patch="true">
+    <CodeLine>
+      <Type>write16</Type>
+      <Address>0047F638</Address>
+      <Value>62EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Disable Super Music" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0048356E</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Enable Super With No Emeralds" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>004832E8</Address>
+      <Value>6</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Enable Super With 1 Ring" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004832F4</Address>
+      <Value>1</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+<Code name="Fix For ERZ Super Sonic Abilities" patch="true">
+    <CodeLine>
+      <Type>write16</Type>
+      <Address>0047E832</Address>
+      <Value>38EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>0047E86E</Address>
+      <Value>7</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Super Dash Costs No Rings" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>0047E662</Address>
+      <Value>6</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>write16</Type>
+      <Address>0047E783</Address>
+      <Value>11EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
 </CodeList>
