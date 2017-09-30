@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using IniFile;
 using ModManagerCommon;
 using ModManagerCommon.Forms;
+using Newtonsoft.Json;
 using ValueType = ModManagerCommon.ValueType;
 
 namespace ManiaModManager
@@ -90,8 +91,37 @@ namespace ManiaModManager
 				return;
 			}
 
+			var fields = uri.Substring("smmm:".Length).Split(',');
+
+			// TODO: lib-ify
+			string itemType = fields.FirstOrDefault(x => x.StartsWith("gb_itemtype", StringComparison.InvariantCultureIgnoreCase));
+			itemType = itemType.Substring(itemType.IndexOf(":") + 1);
+
+			string itemId = fields.FirstOrDefault(x => x.StartsWith("gb_itemid", StringComparison.InvariantCultureIgnoreCase));
+			itemId = itemId.Substring(itemId.IndexOf(":") + 1);
+
+			var dummyInfo = new ModInfo();
+
+			using (var client = new UpdaterWebClient())
+			{
+				var response = client.DownloadString(
+					string.Format("https://api.gamebanana.com/Core/Item/Data?itemtype={0}&itemid={1}&fields=name,authors",
+						itemType, itemId)
+				);
+
+				var array = JsonConvert.DeserializeObject<string[]>(response);
+				dummyInfo.Name = array[0];
+
+				var authors = JsonConvert.DeserializeObject<Dictionary<string, string[][]>>(array[1]);
+
+				// for every array of string[] in authors, select the first element of each array
+				var authorList = from i in (from x in authors select x.Value) from j in i select j[0];
+				dummyInfo.Author = string.Join(", ", authorList);
+			}
+
 			string updatePath = Path.Combine("mods", ".updates");
 
+			#region create update folder
 			do
 			{
 				try
@@ -108,13 +138,20 @@ namespace ManiaModManager
 					                               + "\n\nWould you like to retry?", "Directory Creation Failed", MessageBoxButtons.RetryCancel);
 				}
 			} while (result == DialogResult.Retry);
+			#endregion
 
-			var fields = uri.Substring("smmm:".Length).Split(',');
+			string dummyPath = dummyInfo.Name;
 
-			// TODO: query banana api here
+			foreach (char c in Path.GetInvalidFileNameChars())
+			{
+				dummyPath = dummyPath.Replace(c, '_');
+			}
+
+			dummyPath = Path.Combine("mods", dummyPath);
+
 			var updates = new List<ModDownload>
 			{
-				new ModDownload(new ModInfo(), "mods/test", fields[0], null, 0)
+				new ModDownload(dummyInfo, dummyPath, fields[0], null, 0)
 			};
 
 			using (var progress = new DownloadDialog(updates, updatePath))
