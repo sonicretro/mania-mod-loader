@@ -108,7 +108,7 @@
       <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
-<Code name="Fix For ERZ Super Sonic Abilities" patch="true">
+  <Code name="Fix For ERZ Super Sonic Abilities" patch="true">
     <CodeLine>
       <Type>write16</Type>
       <Address>0047E832</Address>
@@ -134,6 +134,72 @@
       <Address>0047E783</Address>
       <Value>11EB</Value>
       <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Super Forms Can Fly">
+    <CodeLine>
+      <Type>ifeq8</Type>
+      <Address>00A4C7E4</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+      <TrueLines>
+        <CodeLine>
+          <Type>write32</Type>
+          <Address>00A4C888</Address>
+          <Value>019CFF00</Value>
+          <ValueType>hex</ValueType>
+        </CodeLine>
+      </TrueLines>
+      <FalseLines>
+      </FalseLines>
+    </CodeLine>
+  </Code>
+  <Code name="P1 Have Bubble Shield Effects (No Protection)">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00A4C78C</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="P1 Have Flame Shield Effects (No Protection)">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00A4C78C</Address>
+      <Value>3</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="P1 Have Lightning Shield Effects (No Protection)">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00A4C78C</Address>
+      <Value>4</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="P2 Have Bubble Shield Effects (No Protection)">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00A4CBE4</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="P2 Have Flame Shield Effects (No Protection)">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00A4CBE4</Address>
+      <Value>3</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="P2 Have Lightning Shield Effects (No Protection)">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00A4CBE4</Address>
+      <Value>4</Value>
+      <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
 </CodeList>
