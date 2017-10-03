@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
@@ -21,6 +22,22 @@ namespace ManiaModManager
 		[STAThread]
 		static void Main(string[] args)
 		{
+			if (args.Length > 0 && args[0] == "urlhandler")
+			{
+				using (var hkcr = Registry.ClassesRoot)
+				using (var key = hkcr.CreateSubKey("smmm"))
+				{
+					key.SetValue(null, "URL:Mania Mod Manager Protocol");
+					key.SetValue("URL Protocol", string.Empty);
+					using (var k2 = key.CreateSubKey("DefaultIcon"))
+						k2.SetValue(null, Application.ExecutablePath + ",1");
+					using (var k3 = key.CreateSubKey("shell"))
+					using (var k4 = k3.CreateSubKey("open"))
+					using (var k5 = k4.CreateSubKey("command"))
+						k5.SetValue(null, $"\"{Application.ExecutablePath}\" \"%1\"");
+				}
+				return;
+			}
 			bool alreadyRunning = !mutex.WaitOne(0, true);
 
 			if (!alreadyRunning)

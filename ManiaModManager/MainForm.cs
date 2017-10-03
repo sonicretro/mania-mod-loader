@@ -86,12 +86,6 @@ namespace ManiaModManager
 			}
 
 			Activate();
-			DialogResult result = MessageBox.Show(this, uri, "Mod Download", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-			if (result != DialogResult.Yes)
-			{
-				return;
-			}
 
 			var fields = uri.Substring("smmm:".Length).Split(',');
 
@@ -119,6 +113,13 @@ namespace ManiaModManager
 				// for every array of string[] in authors, select the first element of each array
 				var authorList = from i in (from x in authors select x.Value) from j in i select j[0];
 				dummyInfo.Author = string.Join(", ", authorList);
+			}
+
+			DialogResult result = MessageBox.Show(this, $"Do you want to install mod \"{dummyInfo.Name}\" by {dummyInfo.Author} from {new Uri(fields[0]).DnsSafeHost}?", "Mod Download", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+			if (result != DialogResult.Yes)
+			{
+				return;
 			}
 
 			string updatePath = Path.Combine("mods", ".updates");
@@ -185,7 +186,7 @@ namespace ManiaModManager
 
 			foreach (string str in uris)
 			{
-				MessageBox.Show(this, str);
+				HandleUri(str);
 			}
 
 			Program.UriQueue.UriEnqueued += UriQueueOnUriEnqueued;
@@ -643,6 +644,12 @@ namespace ManiaModManager
 			{
 				Process.Start(Path.Combine("mods", (string)item.Tag));
 			}
+		}
+
+		private void installURLHandlerButton_Click(object sender, EventArgs e)
+		{
+			Process.Start(new ProcessStartInfo(Application.ExecutablePath, "urlhandler") { UseShellExecute = true, Verb = "runas" }).WaitForExit();
+			MessageBox.Show(this, "URL handler installed!", Text);
 		}
 	}
 }
