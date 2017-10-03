@@ -51,9 +51,6 @@ namespace ManiaModManager
 				return;
 			}
 
-#if !DEBUG
-			pipe.ReadTimeout = 1000;
-#endif
 			pipe.BeginWaitForConnection(HandleConnection, pipe);
 		}
 
