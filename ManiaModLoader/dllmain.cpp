@@ -396,7 +396,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	{
 	case DLL_PROCESS_ATTACH:
 		if (memcmp(verchk, (const char *)0x5CA587, sizeof(verchk)) != 0)
-			MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
+			MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader, or instructions on downgrading your copy of the game.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
 		else
 			WriteCall((void*)0x5CA587, InitMods);
 		break;
