@@ -12,6 +12,7 @@
 #include "FileMap.hpp"
 #include "FileSystem.h"
 #include "Events.h"
+#include "Trampoline.h"
 #include "ManiaModLoader.h"
 
 using std::ifstream;
@@ -19,6 +20,7 @@ using std::string;
 using std::wstring;
 using std::unique_ptr;
 using std::vector;
+using std::unordered_map;
 
 /**
 * Change write protection of the .xtext section.
@@ -89,6 +91,21 @@ static void __cdecl ProcessCodes()
 	codeParser.processCodeList();
 	RaiseEvents(modFrameEvents);
 	MainGameLoop();
+}
+
+unordered_map<string, unsigned int> musicloops;
+int __cdecl PlaySong_r(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5);
+Trampoline musictramp(0x5993A0, 0x5993A6, PlaySong_r);
+
+int __cdecl PlaySong_r(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
+{
+	string namestr = name;
+	std::transform(namestr.begin(), namestr.end(), namestr.begin(), tolower);
+	auto iter = musicloops.find(namestr);
+	if (iter != musicloops.cend())
+		loopstart = iter->second;
+	auto orig = (decltype(PlaySong_r)*)musictramp.Target();
+	return orig(name, a2, a3, loopstart, a5);
 }
 
 VoidFunc(sub_5BD1C0, 0x5BD1C0);
@@ -238,6 +255,17 @@ void InitMods()
 						PrintDebug("File \"%s\" is not a valid mod file.\n", dll_filenameA.c_str());
 					errors.push_back(std::pair<string, string>(mod_nameA, "Not a valid mod file."));
 				}
+			}
+		}
+		if (ini_mod->hasGroup("MusicLoops"))
+		{
+			const IniGroup *const gr = ini_mod->getGroup("MusicLoops");
+			for (auto iter = gr->cbegin(); iter != gr->cend(); ++iter)
+			{
+				string name = iter->first;
+				std::transform(name.begin(), name.end(), name.begin(), tolower);
+				name.append(".ogg");
+				musicloops[name] = std::stoi(iter->second);
 			}
 		}
 	}
