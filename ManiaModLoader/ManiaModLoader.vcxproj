@@ -66,7 +66,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
-      <AdditionalDependencies>..\bin\ModLoaderCommon.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -87,7 +87,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
-      <AdditionalDependencies>..\bin\ModLoaderCommon.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -114,6 +114,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Trampoline.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\mod-loader-common\ModLoaderCommon\ModLoaderCommon.vcxproj">
+      <Project>{ec0293f5-4bcf-46b2-8133-18caea141c5b}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
