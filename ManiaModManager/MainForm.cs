@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Windows.Forms;
 using IniFile;
+using ModManagerCommon;
+using ModManagerCommon.Forms;
+using Newtonsoft.Json;
+using ValueType = ModManagerCommon.ValueType;
 
 namespace ManiaModManager
 {
@@ -23,7 +24,7 @@ namespace ManiaModManager
 		const string datadllpath = "d3d9.dll";
 		const string loaderinipath = "mods/ManiaModLoader.ini";
 		const string loaderdllpath = "mods/ManiaModLoader.dll";
-		LoaderInfo loaderini;
+		ManiaLoaderInfo loaderini;
 		Dictionary<string, ModInfo> mods;
 		const string codexmlpath = "mods/Codes.xml";
 		const string codedatpath = "mods/Codes.dat";
@@ -41,8 +42,10 @@ namespace ManiaModManager
 
 		private void MainForm_Load(object sender, EventArgs e)
 		{
+			if (!Debugger.IsAttached)
+				Environment.CurrentDirectory = Application.StartupPath;
 			SetDoubleBuffered(modListView, true);
-			loaderini = File.Exists(loaderinipath) ? IniSerializer.Deserialize<LoaderInfo>(loaderinipath) : new LoaderInfo();
+			loaderini = File.Exists(loaderinipath) ? IniSerializer.Deserialize<ManiaLoaderInfo>(loaderinipath) : new ManiaLoaderInfo();
 
 			try { mainCodes = CodeList.Load(codexmlpath); }
 			catch { mainCodes = new CodeList() { Codes = new List<Code>() }; }
@@ -73,6 +76,133 @@ namespace ManiaModManager
 				if (result == DialogResult.Yes)
 					File.Copy(loaderdllpath, datadllpath, true);
 			}
+		}
+
+		private void HandleUri(string uri)
+		{
+			if (WindowState == FormWindowState.Minimized)
+			{
+				WindowState = FormWindowState.Normal;
+			}
+
+			Activate();
+
+			var fields = uri.Substring("smmm:".Length).Split(',');
+
+			// TODO: lib-ify
+			string itemType = fields.FirstOrDefault(x => x.StartsWith("gb_itemtype", StringComparison.InvariantCultureIgnoreCase));
+			itemType = itemType.Substring(itemType.IndexOf(":") + 1);
+
+			string itemId = fields.FirstOrDefault(x => x.StartsWith("gb_itemid", StringComparison.InvariantCultureIgnoreCase));
+			itemId = itemId.Substring(itemId.IndexOf(":") + 1);
+
+			var dummyInfo = new ModInfo();
+
+			using (var client = new UpdaterWebClient())
+			{
+				var response = client.DownloadString(
+					string.Format("https://api.gamebanana.com/Core/Item/Data?itemtype={0}&itemid={1}&fields=name,authors",
+						itemType, itemId)
+				);
+
+				var array = JsonConvert.DeserializeObject<string[]>(response);
+				dummyInfo.Name = array[0];
+
+				var authors = JsonConvert.DeserializeObject<Dictionary<string, string[][]>>(array[1]);
+
+				// for every array of string[] in authors, select the first element of each array
+				var authorList = from i in (from x in authors select x.Value) from j in i select j[0];
+				dummyInfo.Author = string.Join(", ", authorList);
+			}
+
+			DialogResult result = MessageBox.Show(this, $"Do you want to install mod \"{dummyInfo.Name}\" by {dummyInfo.Author} from {new Uri(fields[0]).DnsSafeHost}?", "Mod Download", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+			if (result != DialogResult.Yes)
+			{
+				return;
+			}
+
+			string updatePath = Path.Combine("mods", ".updates");
+
+			#region create update folder
+			do
+			{
+				try
+				{
+					result = DialogResult.Cancel;
+					if (!Directory.Exists(updatePath))
+					{
+						Directory.CreateDirectory(updatePath);
+					}
+				}
+				catch (Exception ex)
+				{
+					result = MessageBox.Show(this, "Failed to create temporary update directory:\n" + ex.Message
+					                               + "\n\nWould you like to retry?", "Directory Creation Failed", MessageBoxButtons.RetryCancel);
+				}
+			} while (result == DialogResult.Retry);
+			#endregion
+
+			string dummyPath = dummyInfo.Name;
+
+			foreach (char c in Path.GetInvalidFileNameChars())
+			{
+				dummyPath = dummyPath.Replace(c, '_');
+			}
+
+			dummyPath = Path.Combine("mods", dummyPath);
+
+			var updates = new List<ModDownload>
+			{
+				new ModDownload(dummyInfo, dummyPath, fields[0], null, 0)
+			};
+
+			using (var progress = new DownloadDialog(updates, updatePath))
+			{
+				progress.ShowDialog(this);
+			}
+
+			do
+			{
+				try
+				{
+					result = DialogResult.Cancel;
+					Directory.Delete(updatePath, true);
+				}
+				catch (Exception ex)
+				{
+					result = MessageBox.Show(this, "Failed to remove temporary update directory:\n" + ex.Message
+					                               + "\n\nWould you like to retry? You can remove the directory manually later.",
+						"Directory Deletion Failed", MessageBoxButtons.RetryCancel);
+				}
+			} while (result == DialogResult.Retry);
+
+			LoadModList();
+		}
+
+		private void MainForm_Shown(object sender, EventArgs e)
+		{
+			List<string> uris = Program.UriQueue.GetUris();
+
+			foreach (string str in uris)
+			{
+				HandleUri(str);
+			}
+
+			Program.UriQueue.UriEnqueued += UriQueueOnUriEnqueued;
+		}
+
+		private void UriQueueOnUriEnqueued(object sender, OnUriEnqueuedArgs args)
+		{
+			args.Handled = true;
+
+			if (InvokeRequired)
+			{
+				Invoke((Action<object, OnUriEnqueuedArgs>)UriQueueOnUriEnqueued, sender, args);
+				return;
+			}
+
+			HandleUri(args.Uri);
 		}
 
 		private void LoadModList()
@@ -514,6 +644,12 @@ namespace ManiaModManager
 			{
 				Process.Start(Path.Combine("mods", (string)item.Tag));
 			}
+		}
+
+		private void installURLHandlerButton_Click(object sender, EventArgs e)
+		{
+			Process.Start(new ProcessStartInfo(Application.ExecutablePath, "urlhandler") { UseShellExecute = true, Verb = "runas" }).WaitForExit();
+			MessageBox.Show(this, "URL handler installed!", Text);
 		}
 	}
 }
