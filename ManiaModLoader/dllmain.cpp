@@ -61,7 +61,6 @@ int CheckFile_i(char *buf)
         std::cout << "Replaced File: " << buf << std::endl;
         return 1;
     }
-    std::cout << "File: " << buf << std::endl;
     return 0;
 }
 

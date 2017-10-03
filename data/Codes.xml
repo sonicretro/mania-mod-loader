@@ -19,7 +19,7 @@
   <Code name="Infinite Lives">
     <CodeLine>
       <Type>write8</Type>
-      <Address>A4C790</Address>
+      <Address>00A4C790</Address>
       <Value>99</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
@@ -29,6 +29,22 @@
       <Type>write32</Type>
       <Address>00CCF6EC</Address>
       <Value>0</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Ignore Damage" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004813C0</Address>
+      <Value>C3</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Never Drown" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>0042D30B</Address>
+      <Value>6</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
@@ -152,6 +168,14 @@
       </TrueLines>
       <FalseLines>
       </FalseLines>
+    </CodeLine>
+  </Code>
+  <Code name="Disable Background Pausing">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>005CAD65</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
   <Code name="P1 Have Bubble Shield Effects (No Protection)">
