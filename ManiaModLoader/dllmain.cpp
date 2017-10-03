@@ -229,7 +229,7 @@ void InitMods()
                         const string dll_filenameA = UTF16toMBS(dll_filename, CP_ACP);
                         if (ConsoleEnabled)
                             PrintDebug("File \"%s\" is not built for the current version of the game.\n", dll_filenameA.c_str());
-                        errors.push_back(std::pair<string, string>(mod_nameA, "not built for the current version of the game."));
+                        errors.push_back(std::pair<string, string>(mod_nameA, "Not built for the current version of the game."));
                     }
                 }
                 else
