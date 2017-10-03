@@ -42,6 +42,8 @@ namespace ManiaModManager
 
 		private void MainForm_Load(object sender, EventArgs e)
 		{
+			if (!Debugger.IsAttached)
+				Environment.CurrentDirectory = Application.StartupPath;
 			SetDoubleBuffered(modListView, true);
 			loaderini = File.Exists(loaderinipath) ? IniSerializer.Deserialize<ManiaLoaderInfo>(loaderinipath) : new ManiaLoaderInfo();
 
