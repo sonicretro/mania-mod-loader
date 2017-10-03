@@ -5,6 +5,7 @@
 
 #include "stdafx.h"
 #include "FileMap.hpp"
+#include "include\ManiaModLoader.h"
 
 #include <cctype>
 #include <cstring>
