@@ -5,7 +5,8 @@
 
 #include "stdafx.h"
 #include "FileMap.hpp"
-#include "include\ManiaModLoader.h"
+#include "FileSystem.h"
+#include "ManiaModLoader.h"
 
 #include <cctype>
 #include <cstring>
@@ -156,6 +157,12 @@ void FileMap::scanFolder_int(const string &srcPath, int srcLen, int modIdx)
 
 			// Original filename.
 			string origFile = "data\\" + modFile.substr(srcLen);
+
+			if (!origFile.compare(0, 11, "data\\music\\"))
+			{
+				// Original filename should have a ".ogg" extension.
+				ReplaceFileExtension(origFile, ".ogg");
+			}
 
 			setReplaceFile(origFile, modFile, modIdx);
 		}

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <vector>
 #include <sstream>
+#include "bass_vgmstream.h"
 #include "CodeParser.hpp"
 #include "IniFile.hpp"
 #include "TextConv.hpp"
@@ -83,19 +84,68 @@ __declspec(naked) void CheckFile()
 	}
 }
 
-// Code Parser.
-static CodeParser codeParser;
-
-static void __cdecl ProcessCodes()
-{
-	codeParser.processCodeList();
-	RaiseEvents(modFrameEvents);
-	MainGameLoop();
-}
-
 unordered_map<string, unsigned int> musicloops;
 Trampoline *musictramp;
+Trampoline *musictramp2;
+bool enablevgmstream;
+DWORD basschan;
+bool isbassmusic = false;
 
+struct struct_0
+{
+	int anonymous_0;
+	int anonymous_1;
+	float volume;
+	int anonymous_3;
+	int anonymous_4;
+	int anonymous_5;
+	int anonymous_6;
+	int hasLoop;
+	__int16 anonymous_8;
+	_BYTE gap22[1];
+	char playStatus;
+};
+
+struct MusicInfo
+{
+	__int16 field_0;
+	_BYTE gap2[1];
+	char Names[32][16];
+	char field_203;
+	int LoopStarts[16];
+	int field_244;
+	int CurrentSong;
+	int field_24C;
+	int field_250;
+	int field_254;
+	int field_258;
+	int field_25C;
+	int field_260;
+	int field_264;
+};
+
+DataArray(struct_0, stru_D7ACA0, 0xD7ACA0, 16);
+DataPointer(MusicInfo *, MusicSlots, 0xD84664);
+int oldsong = -1;
+char oldstatus = 0;
+/**
+* BASS callback: Current track has ended.
+* @param handle
+* @param channel
+* @param data
+* @param user
+*/
+static void __stdcall onTrackEnd(HSYNC handle, DWORD channel, DWORD data, void *user)
+{
+	BASS_ChannelStop(channel);
+	BASS_StreamFree(channel);
+	if (oldsong != -1)
+		oldstatus = stru_D7ACA0[oldsong].playStatus = 0;
+}
+
+DataPointer(void*, Memory, 0xD7AEE0);
+ThiscallFunctionPointer(void, sub_597460, (int a1), 0x597460);
+FunctionPointer(void, _free, (void *a1), 0x609FCC);
 int __cdecl PlaySong_r(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
 {
 	string namestr = name;
@@ -103,8 +153,153 @@ int __cdecl PlaySong_r(char *name, unsigned int a2, int a3, unsigned int loopsta
 	auto iter = musicloops.find(namestr);
 	if (iter != musicloops.cend())
 		loopstart = iter->second;
+	if (enablevgmstream)
+	{
+		if (basschan != 0)
+		{
+			BASS_ChannelStop(basschan);
+			BASS_StreamFree(basschan);
+			basschan = 0;
+		}
+		char buf[MAX_PATH];
+		strncpy(buf, "Data\\Music\\", MAX_PATH);
+		strncat(buf, name, MAX_PATH);
+		string newname = fileMap.replaceFile(buf);
+		string ext = GetExtension(newname);
+		if (ext != "ogg")
+		{
+			if (Memory)
+			{
+				sub_597460((int)Memory);
+				if (!*((_DWORD *)Memory + 17))
+					_free(Memory);
+			}
+			basschan = BASS_VGMSTREAM_StreamCreate(newname.c_str(), 0);
+			if (basschan != 0)
+			{
+				// Stream opened!
+				isbassmusic = true;
+				stru_D7ACA0[a2].anonymous_0 = *(int*)0xD7CEF0;
+				stru_D7ACA0[a2].anonymous_4 = *(int*)0xD7CEF4;
+				*(_DWORD *)&stru_D7ACA0[a2].anonymous_8 = 0x3FF00FF;
+				stru_D7ACA0[a2].hasLoop = 0;
+				stru_D7ACA0[a2].anonymous_5 = 0;
+				stru_D7ACA0[a2].volume = 1;
+				stru_D7ACA0[a2].anonymous_1 = 0;
+				stru_D7ACA0[a2].anonymous_3 = 0x10000;
+				BASS_ChannelPlay(basschan, false);
+				BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, MusicVolume);
+				BASS_ChannelSetSync(basschan, BASS_SYNC_END, 0, onTrackEnd, nullptr);
+				stru_D7ACA0[a2].playStatus = 2;
+				return a2;
+			}
+			isbassmusic = false;
+			stru_D7ACA0[a2].playStatus = 0;
+			return -1;
+		}
+	}
+	isbassmusic = false;
 	auto orig = (decltype(PlaySong_r)*)musictramp->Target();
 	return orig(name, a2, a3, loopstart, a5);
+}
+
+void __fastcall sub_599780_r(void *thing)
+{
+	if (!isbassmusic)
+	{
+		auto orig = (decltype(sub_599780_r)*)musictramp2->Target();
+		orig(thing);
+	}
+}
+
+const int loc_4016AE = 0x4016AE;
+const int loc_4016C1 = 0x4016C1;
+__declspec(naked) void loc_4016A9_r()
+{
+	__asm
+	{
+		mov al, [isbassmusic]
+		test al, al
+		jnz bass
+		mov eax, 0xD7AEE0
+		jmp loc_4016AE
+	bass:
+		jmp loc_4016C1
+	}
+}
+
+const int loc_5C96E3 = 0x5C96E3;
+const int loc_5C9712 = 0x5C9712;
+__declspec(naked) void loc_5C96DE_r()
+{
+	__asm
+	{
+		mov al, [isbassmusic]
+		test al, al
+		jnz bass
+		mov eax, 0xD7AEE0
+		jmp loc_5C96E3
+	bass:
+		jmp loc_5C9712
+	}
+}
+
+VoidFunc(sub_599720, 0x599720);
+void ResumeSound()
+{
+	if (isbassmusic)
+		BASS_ChannelPlay(basschan, false);
+	sub_599720();
+}
+
+VoidFunc(sub_5996C0, 0x5996C0);
+void PauseSound()
+{
+	if (isbassmusic)
+		BASS_ChannelPause(basschan);
+	sub_5996C0();
+}
+
+// Code Parser.
+static CodeParser codeParser;
+
+static void __cdecl ProcessCodes()
+{
+	codeParser.processCodeList();
+	RaiseEvents(modFrameEvents);
+	if (MusicSlots != nullptr && isbassmusic)
+	{
+		int song = MusicSlots->CurrentSong;
+		if (song != -1)
+		{
+			char status = stru_D7ACA0[song].playStatus;
+			if (song == oldsong && status != oldstatus)
+				switch (status)
+				{
+				case 0:
+					BASS_ChannelStop(basschan);
+					BASS_StreamFree(basschan);
+					break;
+				case 2:
+					BASS_ChannelPlay(basschan, false);
+					break;
+				case 66:
+					BASS_ChannelPause(basschan);
+					break;
+#ifdef _DEBUG
+				default:
+					PrintDebug("Unknown status code %d\n", status);
+					break;
+#endif
+				}
+			oldstatus = status;
+			BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, stru_D7ACA0[song].volume * MusicVolume);
+		}
+		else
+			oldstatus = 0;
+		oldsong = song;
+	}
+	MainGameLoop();
 }
 
 VoidFunc(sub_5BD1C0, 0x5BD1C0);
@@ -381,7 +576,15 @@ void InitMods()
 
 	WriteJump((void*)0x5A08CE, CheckFile);
 	WriteCall((void*)0x5CAAFF, ProcessCodes);
+	enablevgmstream = (bool)BASS_Init(-1, 44100, 0, nullptr, nullptr);
 	musictramp = new Trampoline(0x5993A0, 0x5993A6, PlaySong_r);
+	musictramp2 = new Trampoline(0x599780, 0x599786, sub_599780_r);
+	WriteJump((void*)0x4016A9, loc_4016A9_r);
+	WriteJump((void*)0x5C96DE, loc_5C96DE_r);
+	WriteCall((void*)0x5CAE98, PauseSound);
+	WriteCall((void*)0x5CAEDB, ResumeSound);
+	WriteCall((void*)0x5CAF85, PauseSound);
+	WriteCall((void*)0x5CAFA6, ResumeSound);
 
 	sub_5BD1C0();
 }
