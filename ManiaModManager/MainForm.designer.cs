@@ -51,6 +51,7 @@
 			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
 			this.modContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.openFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.installURLHandlerButton = new System.Windows.Forms.Button();
 			label1 = new System.Windows.Forms.Label();
 			this.tabControl1.SuspendLayout();
 			this.tabPage1.SuspendLayout();
@@ -243,6 +244,7 @@
 			// 
 			// tabPage4
 			// 
+			this.tabPage4.Controls.Add(this.installURLHandlerButton);
 			this.tabPage4.Controls.Add(this.startingScene);
 			this.tabPage4.Controls.Add(label1);
 			this.tabPage4.Controls.Add(this.enableDebugConsole);
@@ -379,6 +381,18 @@
 			this.openFolderToolStripMenuItem.Text = "Open folder";
 			this.openFolderToolStripMenuItem.Click += new System.EventHandler(this.openFolderToolStripMenuItem_Click);
 			// 
+			// installURLHandlerButton
+			// 
+			this.installURLHandlerButton.AutoSize = true;
+			this.installURLHandlerButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.installURLHandlerButton.Location = new System.Drawing.Point(6, 57);
+			this.installURLHandlerButton.Name = "installURLHandlerButton";
+			this.installURLHandlerButton.Size = new System.Drawing.Size(109, 23);
+			this.installURLHandlerButton.TabIndex = 3;
+			this.installURLHandlerButton.Text = "Install URL Handler";
+			this.installURLHandlerButton.UseVisualStyleBackColor = true;
+			this.installURLHandlerButton.Click += new System.EventHandler(this.installURLHandlerButton_Click);
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -394,6 +408,7 @@
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
 			this.Text = "Mania Mod Manager";
 			this.Load += new System.EventHandler(this.MainForm_Load);
+			this.Shown += new System.EventHandler(this.MainForm_Shown);
 			this.tabControl1.ResumeLayout(false);
 			this.tabPage1.ResumeLayout(false);
 			this.tabPage1.PerformLayout();
@@ -429,5 +444,6 @@
 		private System.Windows.Forms.TabPage tabPage4;
 		private System.Windows.Forms.CheckBox enableDebugConsole;
 		private System.Windows.Forms.ComboBox startingScene;
+		private System.Windows.Forms.Button installURLHandlerButton;
 	}
 }

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.10
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ManiaModLoader", "ManiaModLoader\ManiaModLoader.vcxproj", "{BF257748-828D-4F9D-BD5D-E9D389F28C03}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -12,7 +12,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModLoaderCommon", "mod-load
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaModManager", "ManiaModManager\ManiaModManager.csproj", "{131FDCC0-1CAA-4A77-972A-6DAFE246B507}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ModManagerCommon", "mod-loader-common\ModManagerCommon\ModManagerCommon.shproj", "{DE1F0B2D-8634-47B7-9E50-EDE78EF59200}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		mod-loader-common\ModManagerCommon\ModManagerCommon.projitems*{131fdcc0-1caa-4a77-972a-6dafe246b507}*SharedItemsImports = 4
+		mod-loader-common\ModManagerCommon\ModManagerCommon.projitems*{de1f0b2d-8634-47b7-9e50-ede78ef59200}*SharedItemsImports = 13
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
 		Release|x86 = Release|x86

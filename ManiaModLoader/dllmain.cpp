@@ -12,6 +12,7 @@
 #include "FileMap.hpp"
 #include "FileSystem.h"
 #include "Events.h"
+#include "Trampoline.h"
 #include "ManiaModLoader.h"
 
 using std::ifstream;
@@ -19,6 +20,7 @@ using std::string;
 using std::wstring;
 using std::unique_ptr;
 using std::vector;
+using std::unordered_map;
 
 /**
 * Change write protection of the .xtext section.
@@ -90,6 +92,21 @@ static void __cdecl ProcessCodes()
     codeParser.processCodeList();
     RaiseEvents(modFrameEvents);
     MainGameLoop();
+}
+
+unordered_map<string, unsigned int> musicloops;
+int __cdecl PlaySong_r(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5);
+Trampoline musictramp(0x5992C0, 0x5992C6, PlaySong_r);
+
+int __cdecl PlaySong_r(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
+{
+	string namestr = name;
+	std::transform(namestr.begin(), namestr.end(), namestr.begin(), tolower);
+	auto iter = musicloops.find(namestr);
+	if (iter != musicloops.cend())
+		loopstart = iter->second;
+	auto orig = (decltype(PlaySong_r)*)musictramp.Target();
+	return orig(name, a2, a3, loopstart, a5);
 }
 
 VoidFunc(sub_5BD0E0, 0x5BD0E0);
