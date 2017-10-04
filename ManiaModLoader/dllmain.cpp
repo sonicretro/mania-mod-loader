@@ -60,7 +60,6 @@ int CheckFile_i(char *buf)
     {
         const char *tmp = fileMap.replaceFile(buf);
         strncpy(buf, tmp, MAX_PATH);
-        std::cout << "Replaced File: " << buf << std::endl;
         return 1;
     }
     return 0;
