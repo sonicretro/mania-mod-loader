@@ -94,8 +94,7 @@ static void __cdecl ProcessCodes()
 }
 
 unordered_map<string, unsigned int> musicloops;
-int __cdecl PlaySong_r(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5);
-Trampoline musictramp(0x5992C0, 0x5992C6, PlaySong_r);
+Trampoline *musictramp;
 
 int __cdecl PlaySong_r(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
 {
@@ -104,7 +103,7 @@ int __cdecl PlaySong_r(char *name, unsigned int a2, int a3, unsigned int loopsta
 	auto iter = musicloops.find(namestr);
 	if (iter != musicloops.cend())
 		loopstart = iter->second;
-	auto orig = (decltype(PlaySong_r)*)musictramp.Target();
+	auto orig = (decltype(PlaySong_r)*)musictramp->Target();
 	return orig(name, a2, a3, loopstart, a5);
 }
 
@@ -372,6 +371,7 @@ void InitMods()
     
     WriteJump((void*)0x5A07CE, CheckFile);
     WriteCall((void*)0x5CAA0F, ProcessCodes);
+	musictramp = new Trampoline(0x5992C0, 0x5992C6, PlaySong_r);
 
     sub_5BD0E0();
 }

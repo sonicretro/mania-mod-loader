@@ -155,6 +155,7 @@ struct PlayerData
 
 // define function and variable pointers here
 DataPointer(int, ConsoleEnabled, 0x6341A4);
+DataPointer(float, MusicVolume, 0x638CC4);
 DataPointer(PlayerData, Player1Data, 0xA4C6C0);
 DataPointer(PlayerData, Player2Data, 0xA4CB18);
 DataPointer(int, TimerCentiframes, 0xCCF6EC);
