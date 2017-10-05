@@ -625,6 +625,12 @@
       <Value>2</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>004B8548</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
   </Code>
   <Code name="Disable Time Over" patch="true">
     <CodeLine>
@@ -682,6 +688,30 @@
       <Address>0041F6A7</Address>
       <Value>2</Value>
       <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Invincibility Lasts Forever" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0047EABE</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Speed Shoes Last Forever" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0047EAE4</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Disable Autosave Popup" patch="true">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00454F40</Address>
+      <Value>90C3C031</Value>
+      <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
   <Code name="Special Stage: Grass Has No Effect" patch="true">
