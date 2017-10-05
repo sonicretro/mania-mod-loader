@@ -714,6 +714,14 @@
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
+  <Code name="Display Unused CESA Message" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>005CA5D1</Address>
+      <Value>1</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
   <Code name="Special Stage: Grass Has No Effect" patch="true">
     <CodeLine>
       <Type>write8</Type>
