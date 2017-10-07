@@ -722,6 +722,22 @@
       <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
+  <Code name="Never Show Bonus Stage Entrance" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0040A6B2</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Always Show Bonus Stage Entrance" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>0040A6B2</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
   <Code name="Special Stage: Grass Has No Effect" patch="true">
     <CodeLine>
       <Type>write8</Type>
