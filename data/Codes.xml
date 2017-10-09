@@ -32,22 +32,6 @@
       <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
-  <Code name="Ignore Damage" patch="true">
-    <CodeLine>
-      <Type>write8</Type>
-      <Address>004813C0</Address>
-      <Value>C3</Value>
-      <ValueType>hex</ValueType>
-    </CodeLine>
-  </Code>
-  <Code name="Never Drown" patch="true">
-    <CodeLine>
-      <Type>writenop</Type>
-      <Address>0042D30B</Address>
-      <Value>6</Value>
-      <ValueType>decimal</ValueType>
-    </CodeLine>
-  </Code>
   <Code name="P1 Always Have Combine Ring">
     <CodeLine>
       <Type>write8</Type>
@@ -61,6 +45,38 @@
       <Type>write8</Type>
       <Address>00A4CBF4</Address>
       <Value>1</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Enable Super Peel-Out">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00A4C88C</Address>
+      <Value>00483AD0</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Enable Insta-Shield">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00A4C888</Address>
+      <Value>004835D0</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Ignore Damage" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004813C0</Address>
+      <Value>C3</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Never Drown" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>0042D30B</Address>
+      <Value>6</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
@@ -136,6 +152,70 @@
       <Address>0047E86E</Address>
       <Value>7</Value>
       <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="P1 Has Sonic's Abilities">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00A4C888</Address>
+      <Value>004835D0</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="P1 Has Tails' Abilities">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00A4C888</Address>
+      <Value>00483910</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="P1 Has Knuckles' Abilities">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00A4C888</Address>
+      <Value>004839E0</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="P1 Has ERZ Super Sonic's Abilities">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00A4C888</Address>
+      <Value>019CFF00</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="P2 Has Sonic's Abilities">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00A4CCE0</Address>
+      <Value>004835D0</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="P2 Has Tails' Abilities">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00A4CCE0</Address>
+      <Value>00483910</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="P2 Has Knuckles' Abilities">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00A4CCE0</Address>
+      <Value>004839E0</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="P2 Has ERZ Super Sonic's Abilities">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>00A4CCE0</Address>
+      <Value>019CFF00</Value>
+      <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
   <Code name="Super Dash Costs No Rings" patch="true">
@@ -223,6 +303,94 @@
       <Type>write8</Type>
       <Address>00A4CBE4</Address>
       <Value>4</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Invincibility Lasts Forever" patch="true">
+     <CodeLine>
+       <Type>write8</Type>
+       <Address>0047E9CE</Address>
+       <Value>EB</Value>
+       <ValueType>hex</ValueType>
+     </CodeLine>
+   </Code>
+   <Code name="Speed Shoes Last Forever" patch="true">
+     <CodeLine>
+       <Type>write8</Type>
+       <Address>0047E9F4</Address>
+       <Value>EB</Value>
+       <ValueType>hex</ValueType>
+     </CodeLine>
+   </Code>
+   <Code name="Disable Autosave Popup" patch="true">
+     <CodeLine>
+       <Type>write32</Type>
+       <Address>00454D60</Address>
+       <Value>90C3C031</Value>
+       <ValueType>hex</ValueType>
+     </CodeLine>
+   </Code>
+   <Code name="Display Unused CESA Message" patch="true">
+     <CodeLine>
+       <Type>write8</Type>
+       <Address>005CA4E1</Address>
+       <Value>1</Value>
+        <ValueType>decimal</ValueType>
+      </CodeLine>
+    </Code>
+   <Code name="Never Show Bonus Stage Entrance" patch="true">
+     <CodeLine>
+       <Type>write8</Type>
+       <Address>0040A6B2</Address>
+       <Value>EB</Value>
+       <ValueType>hex</ValueType>
+     </CodeLine>
+   </Code>
+   <Code name="Always Show Bonus Stage Entrance" patch="true">
+     <CodeLine>
+       <Type>writenop</Type>
+       <Address>0040A6B2</Address>
+       <Value>2</Value>
+       <ValueType>decimal</ValueType>
+     </CodeLine>
+   </Code>
+  <Code name="Special Stage: Start at Mach 3" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00558F69</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+    <Code name="Bonus Stage: Only Need One Sphere" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>004B49F7</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Bonus Stage: Always Get Gold Medal" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004B4475</Address>
+      <Value>13</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Bonus Stage: Remove Speed Cap" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>004B4DF8</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Bonus Stage: Speed Up Twice As Quickly" patch="true">
+    <CodeLine>
+      <Type>write32</Type>
+      <Address>01D8A300</Address>
+      <Value>900</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
