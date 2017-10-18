@@ -98,13 +98,15 @@ Trampoline *musictramp;
 
 int __cdecl PlaySong_r(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
 {
-	string namestr = name;
-	std::transform(namestr.begin(), namestr.end(), namestr.begin(), tolower);
-	auto iter = musicloops.find(namestr);
-	if (iter != musicloops.cend())
-		loopstart = iter->second;
-	auto orig = (decltype(PlaySong_r)*)musictramp->Target();
-	return orig(name, a2, a3, loopstart, a5);
+
+	PrintDebug("PlaySong(\"%s\", %d, %d, %d, %d)\n", name, a2, a3, loopstart, a5);
+    string namestr = name;
+    std::transform(namestr.begin(), namestr.end(), namestr.begin(), tolower);
+    auto iter = musicloops.find(namestr);
+    if (iter != musicloops.cend())
+        loopstart = iter->second;
+    auto orig = (decltype(PlaySong_r)*)musictramp->Target();
+    return orig(name, a2, a3, loopstart, a5);
 }
 
 VoidFunc(sub_5BD0E0, 0x5BD0E0);
@@ -256,6 +258,18 @@ void InitMods()
                 }
             }
         }
+        
+        if (ini_mod->hasGroup("MusicLoops"))
+        {
+            const IniGroup *const gr = ini_mod->getGroup("MusicLoops");
+            for (auto iter = gr->cbegin(); iter != gr->cend(); ++iter)
+            {
+                string name = iter->first;
+                std::transform(name.begin(), name.end(), name.begin(), tolower);
+                name.append(".ogg");
+                musicloops[name] = std::stoi(iter->second);
+            }
+        }
     }
 
     if (!errors.empty())
@@ -371,7 +385,7 @@ void InitMods()
     
     WriteJump((void*)0x5A07CE, CheckFile);
     WriteCall((void*)0x5CAA0F, ProcessCodes);
-	musictramp = new Trampoline(0x5992C0, 0x5992C6, PlaySong_r);
+    musictramp = new Trampoline(0x5992C0, 0x5992C6, PlaySong_r);
 
     sub_5BD0E0();
 }
