@@ -56,7 +56,7 @@
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
-  <Code name="Enable Insta-Shield">
+  <Code name="Enable Insta-Shield (Broken)">
     <CodeLine>
       <Type>write32</Type>
       <Address>00A4C888</Address>
@@ -78,6 +78,22 @@
       <Address>0042D30B</Address>
       <Value>6</Value>
       <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Keep Flame Shield Underwater" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0042D289</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Keep Lightning Shield Underwater" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0042D2C2</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
   <Code name="Enable Debug Mode">
@@ -218,6 +234,44 @@
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
+  <Code name="Disable HUD" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0041F4A0</Address>
+      <Value>C3</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Don't Get Extra Life From Rings" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>004811E8</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Anyone Can Break Breakable Walls By Touching Them" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>00444583</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>004B8498</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Infinite Flight (Tails)" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>004867AD</Address>
+      <Value>6</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
   <Code name="Super Dash Costs No Rings" patch="true">
     <CodeLine>
       <Type>writenop</Type>
@@ -229,6 +283,30 @@
       <Type>write16</Type>
       <Address>0047E783</Address>
       <Value>11EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Remove Super Dash Cooldown" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>0047E644</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+    <Code name="Never Lose Rings With Super" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>00482F2D</Address>
+      <Value>6</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Never Lose Super" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00482F44</Address>
+      <Value>EB</Value>
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
@@ -247,10 +325,62 @@
         </CodeLine>
       </TrueLines>
       <FalseLines>
+        <CodeLine>
+          <Type>ifeq32</Type>
+          <Address>00A4C718</Address>
+          <Value>0047E3C0</Value>
+          <ValueType>hex</ValueType>
+          <TrueLines>
+            <CodeLine>
+              <Type>write32</Type>
+              <Address>00A4C718</Address>
+              <Value>004853E0</Value>
+              <ValueType>hex</ValueType>
+            </CodeLine>
+          </TrueLines>
+        </CodeLine>
+        <CodeLine>
+          <Type>ifeq8</Type>
+          <Address>00A4C780</Address>
+          <Value>2</Value>
+          <ValueType>decimal</ValueType>
+          <TrueLines>
+            <CodeLine>
+              <Type>write32</Type>
+              <Address>00A4C888</Address>
+              <Value>00483910</Value>
+              <ValueType>hex</ValueType>
+            </CodeLine>
+          </TrueLines>
+          <FalseLines>
+            <CodeLine>
+              <Type>ifeq8</Type>
+              <Address>00A4C780</Address>
+              <Value>4</Value>
+              <ValueType>decimal</ValueType>
+              <TrueLines>
+                <CodeLine>
+                  <Type>write32</Type>
+                  <Address>00A4C888</Address>
+                  <Value>004839E0</Value>
+                  <ValueType>hex</ValueType>
+                </CodeLine>
+              </TrueLines>
+              <FalseLines>
+                <CodeLine>
+                  <Type>write32</Type>
+                  <Address>00A4C888</Address>
+                  <Value>004835D0</Value>
+                  <ValueType>hex</ValueType>
+                </CodeLine>
+              </FalseLines>
+            </CodeLine>
+          </FalseLines>
+        </CodeLine>
       </FalseLines>
     </CodeLine>
   </Code>
-  <Code name="Disable Background Pausing">
+  <Code name="Disable Background Pausing" patch="true">
     <CodeLine>
       <Type>write8</Type>
       <Address>005CAD65</Address>
@@ -360,6 +490,30 @@
       <Address>00558F69</Address>
       <Value>2</Value>
       <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Special Stage: Grass Has No Effect" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00557E91</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Special Stage: Don't Lose Rings From Time" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>031BC37C</Address>
+      <Value>EB</Value>
+      <ValueType>hex</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Special Stage: Don't Lose Rings From Damage" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00574B70</Address>
+      <Value>C3</Value>
+      <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
     <Code name="Bonus Stage: Only Need One Sphere" patch="true">
