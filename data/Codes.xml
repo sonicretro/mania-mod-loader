@@ -24,6 +24,20 @@
       <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
+  <Code name="Infinite Shield Usage" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>00483826</Address>
+      <Value>10</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>00483790</Address>
+      <Value>10</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
   <Code name="Freeze Timer">
     <CodeLine>
       <Type>write32</Type>
@@ -49,19 +63,39 @@
     </CodeLine>
   </Code>
   <Code name="Enable Super Peel-Out">
-    <CodeLine>
-      <Type>write32</Type>
-      <Address>00A4C88C</Address>
-      <Value>00483AD0</Value>
-      <ValueType>hex</ValueType>
+	<CodeLine>
+      <Type>ifltu8</Type>
+      <Address>00CCF6F8</Address>
+      <Value>38</Value>
+      <ValueType>decimal</ValueType>
+      <TrueLines>
+        <CodeLine>
+          <Type>write32</Type>
+          <Address>00A4C88C</Address>
+          <Value>00483AD0</Value>
+          <ValueType>hex</ValueType>
+        </CodeLine>
+      </TrueLines>
+      <FalseLines>
+      </FalseLines>
     </CodeLine>
   </Code>
   <Code name="Enable Insta-Shield">
     <CodeLine>
-      <Type>write32</Type>
-      <Address>00A4C888</Address>
-      <Value>004835D0</Value>
-      <ValueType>hex</ValueType>
+      <Type>ifltu8</Type>
+      <Address>00CCF6F8</Address>
+      <Value>38</Value>
+      <ValueType>decimal</ValueType>
+      <TrueLines>
+	    <CodeLine>
+          <Type>write32</Type>
+          <Address>00A4C888</Address>
+          <Value>004835D0</Value>
+          <ValueType>hex</ValueType>
+        </CodeLine>
+      </TrueLines>
+      <FalseLines>
+      </FalseLines>
     </CodeLine>
   </Code>
   <Code name="Ignore Damage" patch="true">
@@ -125,11 +159,21 @@
     </CodeLine>
   </Code>
   <Code name="Keep Control During Cutscenes">
-    <CodeLine>
-      <Type>write32</Type>
-      <Address>00A4C85C</Address>
-      <Value>47FCF0</Value>
-      <ValueType>hex</ValueType>
+	<CodeLine>
+      <Type>ifgtu8</Type>
+      <Address>00CCF6F8</Address>
+      <Value>80</Value>
+      <ValueType>decimal</ValueType>
+      <TrueLines>
+        <CodeLine>
+          <Type>write32</Type>
+          <Address>00A4C85C</Address>
+          <Value>47FCF0</Value>
+          <ValueType>hex</ValueType>
+        </CodeLine>
+      </TrueLines>
+      <FalseLines>
+      </FalseLines>
     </CodeLine>
   </Code>
   <Code name="Don't Skip Cutscenes In Debug Mode" patch="true">
@@ -340,73 +384,83 @@
   </Code>
   <Code name="Super Forms Can Fly">
     <CodeLine>
-      <Type>ifeq8</Type>
-      <Address>00A4C7E4</Address>
-      <Value>2</Value>
+      <Type>ifltu8</Type>
+      <Address>00CCF6F8</Address>
+      <Value>38</Value>
       <ValueType>decimal</ValueType>
       <TrueLines>
-        <CodeLine>
-          <Type>write32</Type>
-          <Address>00A4C888</Address>
-          <Value>019CFF00</Value>
-          <ValueType>hex</ValueType>
-        </CodeLine>
-      </TrueLines>
-      <FalseLines>
-        <CodeLine>
-          <Type>ifeq32</Type>
-          <Address>00A4C718</Address>
-          <Value>0047E3C0</Value>
-          <ValueType>hex</ValueType>
-          <TrueLines>
-            <CodeLine>
-              <Type>write32</Type>
-              <Address>00A4C718</Address>
-              <Value>004853E0</Value>
-              <ValueType>hex</ValueType>
-            </CodeLine>
-          </TrueLines>
-        </CodeLine>
-        <CodeLine>
-          <Type>ifeq8</Type>
-          <Address>00A4C780</Address>
-          <Value>2</Value>
-          <ValueType>decimal</ValueType>
-          <TrueLines>
-            <CodeLine>
-              <Type>write32</Type>
-              <Address>00A4C888</Address>
-              <Value>00483910</Value>
-              <ValueType>hex</ValueType>
-            </CodeLine>
-          </TrueLines>
-          <FalseLines>
-            <CodeLine>
-              <Type>ifeq8</Type>
-              <Address>00A4C780</Address>
-              <Value>4</Value>
-              <ValueType>decimal</ValueType>
-              <TrueLines>
-                <CodeLine>
-                  <Type>write32</Type>
-                  <Address>00A4C888</Address>
-                  <Value>004839E0</Value>
-                  <ValueType>hex</ValueType>
-                </CodeLine>
-              </TrueLines>
-              <FalseLines>
-                <CodeLine>
-                  <Type>write32</Type>
-                  <Address>00A4C888</Address>
-                  <Value>004835D0</Value>
-                  <ValueType>hex</ValueType>
-                </CodeLine>
-              </FalseLines>
-            </CodeLine>
-          </FalseLines>
-        </CodeLine>
-      </FalseLines>
-    </CodeLine>
+		<CodeLine>
+		  <Type>ifeq8</Type>
+		  <Address>00A4C7E4</Address>
+		  <Value>2</Value>
+		  <ValueType>decimal</ValueType>
+		  <TrueLines>
+			<CodeLine>
+			  <Type>write32</Type>
+			  <Address>00A4C888</Address>
+			  <Value>019CFF00</Value>
+			  <ValueType>hex</ValueType>
+			</CodeLine>
+		  </TrueLines>
+		  <FalseLines>
+			<CodeLine>
+			  <Type>ifeq32</Type>
+			  <Address>00A4C718</Address>
+			  <Value>0047E3C0</Value>
+			  <ValueType>hex</ValueType>
+			  <TrueLines>
+				<CodeLine>
+				  <Type>write32</Type>
+				  <Address>00A4C718</Address>
+				  <Value>004853E0</Value>
+				  <ValueType>hex</ValueType>
+				</CodeLine>
+			  </TrueLines>
+			</CodeLine>
+			<CodeLine>
+			  <Type>ifeq8</Type>
+			  <Address>00A4C780</Address>
+			  <Value>2</Value>
+			  <ValueType>decimal</ValueType>
+			  <TrueLines>
+				<CodeLine>
+				  <Type>write32</Type>
+				  <Address>00A4C888</Address>
+				  <Value>00483910</Value>
+				  <ValueType>hex</ValueType>
+				</CodeLine>
+			  </TrueLines>
+			  <FalseLines>
+				<CodeLine>
+				  <Type>ifeq8</Type>
+				  <Address>00A4C780</Address>
+				  <Value>4</Value>
+				  <ValueType>decimal</ValueType>
+				  <TrueLines>
+					<CodeLine>
+					  <Type>write32</Type>
+					  <Address>00A4C888</Address>
+					  <Value>004839E0</Value>
+					  <ValueType>hex</ValueType>
+					</CodeLine>
+				  </TrueLines>
+				  <FalseLines>
+					<CodeLine>
+					  <Type>write32</Type>
+					  <Address>00A4C888</Address>
+					  <Value>004835D0</Value>
+					  <ValueType>hex</ValueType>
+					</CodeLine>
+				  </FalseLines>
+				</CodeLine>
+			  </FalseLines>
+			</CodeLine>
+		  </FalseLines>
+		</CodeLine>
+	  </TrueLines>
+	  <FalseLines>
+	  </FalseLines>
+	</CodeLine>
   </Code>
   <Code name="Super Forms Can Be Canceled">
     <CodeLine>
@@ -706,10 +760,10 @@
   </Code>
   <Code name="Special Stage: Don't Lose Rings From Time" patch="true">
     <CodeLine>
-      <Type>write8</Type>
-      <Address>031BC37C</Address>
-      <Value>EB</Value>
-      <ValueType>hex</ValueType>
+      <Type>writenop</Type>
+      <Address>031BC341</Address>
+      <Value>3</Value>
+      <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
   <Code name="Special Stage: Don't Lose Rings From Damage" patch="true">
@@ -749,6 +803,14 @@
       <Type>write32</Type>
       <Address>01D8A300</Address>
       <Value>900</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
+  <Code name="Use External Game Library" patch="true">
+    <CodeLine>
+      <Type>write8</Type>
+      <Address>00630C0C</Address>
+      <Value>1</Value>
       <ValueType>decimal</ValueType>
     </CodeLine>
   </Code>
