@@ -23,10 +23,10 @@ using std::vector;
 using std::unordered_map;
 
 /**
-* Change write protection of the .xtext section.
+* Change write protection of the .trace section.
 * @param protect True to protect; false to unprotect.
 */
-static void SetXTextWriteProtection(bool protect)
+static void SetRDataWriteProtection(bool protect)
 {
 	// Reference: https://stackoverflow.com/questions/22588151/how-to-find-data-segment-and-code-segment-range-in-program
 
@@ -41,7 +41,7 @@ static void SetXTextWriteProtection(bool protect)
 	// Find the .rdata section.
 	for (unsigned int i = pNtHdr->FileHeader.NumberOfSections; i > 0; i--, pSectionHdr++)
 	{
-		if (strncmp(reinterpret_cast<const char*>(pSectionHdr->Name), ".xtext", sizeof(pSectionHdr->Name)) != 0)
+		if (strncmp(reinterpret_cast<const char*>(pSectionHdr->Name), ".trace", sizeof(pSectionHdr->Name)) != 0)
 			continue;
 
 		const intptr_t vaddr = reinterpret_cast<intptr_t>(hModule) + pSectionHdr->VirtualAddress;
@@ -65,8 +65,8 @@ int CheckFile_i(char *buf)
 	return !ReadFromPack;
 }
 
-int loc_5A08DB = 0x5A08DB;
-int loc_5A097B = 0x5A097B;
+int loc_5A07DB = 0x5A07DB;
+int loc_5A087B = 0x5A087B;
 __declspec(naked) void CheckFile()
 {
 	__asm
@@ -77,9 +77,9 @@ __declspec(naked) void CheckFile()
 		add esp, 4
 		test eax, eax
 		jnz blah
-		jmp loc_5A097B
+		jmp loc_5A087B
 	blah:
-		jmp loc_5A08DB
+		jmp loc_5A07DB
 	}
 }
 
@@ -107,7 +107,7 @@ int __cdecl PlaySong_r(char *name, unsigned int a2, int a3, unsigned int loopsta
 	return orig(name, a2, a3, loopstart, a5);
 }
 
-VoidFunc(sub_5BD1C0, 0x5BD1C0);
+VoidFunc(sub_5BD0E0, 0x5BD0E0);
 void InitMods()
 {
 	FILE *f_ini = _wfopen(L"mods\\ManiaModLoader.ini", L"r");
@@ -119,7 +119,7 @@ void InitMods()
 	unique_ptr<IniFile> ini(new IniFile(f_ini));
 	fclose(f_ini);
 
-	SetXTextWriteProtection(false);
+	SetRDataWriteProtection(false);
 
 	// Get exe's path and filename.
 	wchar_t pathbuf[MAX_PATH];
@@ -379,14 +379,14 @@ void InitMods()
 		codes_str.close();
 	}
 
-	WriteJump((void*)0x5A08CE, CheckFile);
-	WriteCall((void*)0x5CAAFF, ProcessCodes);
-	musictramp = new Trampoline(0x5993A0, 0x5993A6, PlaySong_r);
+	WriteJump((void*)0x5A07CE, CheckFile);
+	WriteCall((void*)0x5CAA0F, ProcessCodes);
+	musictramp = new Trampoline(0x5992C0, 0x5992C6, PlaySong_r);
 
-	sub_5BD1C0();
+	sub_5BD0E0();
 }
 
-static const char verchk[] = { 0xE8u, 0x34, 0x2C, 0xFFu, 0xFFu, 0xE8u, 0xFFu, 0x6E, 0xFDu, 0xFFu };
+static const char verchk[] = { 0xE8u, 0x44, 0x2C, 0xFFu, 0xFFu, 0xE8u, 0xEFu, 0x6E, 0xFDu, 0xFFu };
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
@@ -395,10 +395,10 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		if (memcmp(verchk, (const char *)0x5CA587, sizeof(verchk)) != 0)
-			MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader, or instructions on downgrading your copy of the game.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
+		if (memcmp(verchk, (const char *)0x5CA497, sizeof(verchk)) != 0)
+			MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
 		else
-			WriteCall((void*)0x5CA587, InitMods);
+			WriteCall((void*)0x5CA497, InitMods);
 		break;
 	case DLL_PROCESS_DETACH:
 		break;
