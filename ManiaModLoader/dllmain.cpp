@@ -107,6 +107,18 @@ int __cdecl PlaySong_r(char *name, unsigned int a2, int a3, unsigned int loopsta
 	return orig(name, a2, a3, loopstart, a5);
 }
 
+static vector<wstring> split(const wstring &s, wchar_t delim)
+{
+	vector<wstring> elems;
+	std::wstringstream ss(s);
+	wstring item;
+	while (std::getline(ss, item, delim))
+	{
+		elems.push_back(item);
+	}
+	return elems;
+}
+
 VoidFunc(sub_5BD0E0, 0x5BD0E0);
 void InitMods()
 {
@@ -192,67 +204,70 @@ void InitMods()
 		// Check if the mod has a DLL file.
 		if (modinfo->hasKeyNonEmpty("DLLFile"))
 		{
-			// Prepend the mod directory.
-			// TODO: SetDllDirectory().
-			wstring dll_filename = mod_dir + L'\\' + modinfo->getWString("DLLFile");
-			HMODULE module = LoadLibrary(dll_filename.c_str());
-			if (module == nullptr)
+			for (auto fn : split(modinfo->getWString("DLLFile"), L','))
 			{
-				DWORD error = GetLastError();
-				LPSTR buffer;
-				size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-					nullptr, error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&buffer, 0, nullptr);
-
-				string message(buffer, size);
-				LocalFree(buffer);
-
-				const string dll_filenameA = UTF16toMBS(dll_filename, CP_ACP);
-				if (ConsoleEnabled)
-					PrintDebug("Failed loading mod DLL \"%s\": %s\n", dll_filenameA.c_str(), message.c_str());
-				errors.push_back(std::pair<string, string>(mod_nameA, "DLL error - " + message));
-			}
-			else
-			{
-				const ModInfo *info = (const ModInfo *)GetProcAddress(module, "ManiaModInfo");
-				if (info)
+				// Prepend the mod directory.
+				// TODO: SetDllDirectory().
+				wstring dll_filename = mod_dir + L'\\' + fn;
+				HMODULE module = LoadLibrary(dll_filename.c_str());
+				if (module == nullptr)
 				{
-					if (info->GameVersion == GameVer)
+					DWORD error = GetLastError();
+					LPSTR buffer;
+					size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+						nullptr, error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&buffer, 0, nullptr);
+
+					string message(buffer, size);
+					LocalFree(buffer);
+
+					const string dll_filenameA = UTF16toMBS(dll_filename, CP_ACP);
+					if (ConsoleEnabled)
+						PrintDebug("Failed loading mod DLL \"%s\": %s\n", dll_filenameA.c_str(), message.c_str());
+					errors.push_back(std::pair<string, string>(mod_nameA, "DLL error - " + message));
+				}
+				else
+				{
+					const ModInfo *info = (const ModInfo *)GetProcAddress(module, "ManiaModInfo");
+					if (info)
 					{
-						const ModInitFunc init = (const ModInitFunc)GetProcAddress(module, "Init");
-						if (init)
-							initfuncs.push_back({ init, mod_dirA });
-						const PatchList *patches = (const PatchList *)GetProcAddress(module, "Patches");
-						if (patches)
-							for (int j = 0; j < patches->Count; j++)
-								WriteData(patches->Patches[j].address, patches->Patches[j].data, patches->Patches[j].datasize);
-						const PointerList *jumps = (const PointerList *)GetProcAddress(module, "Jumps");
-						if (jumps)
-							for (int j = 0; j < jumps->Count; j++)
-								WriteJump(jumps->Pointers[j].address, jumps->Pointers[j].data);
-						const PointerList *calls = (const PointerList *)GetProcAddress(module, "Calls");
-						if (calls)
-							for (int j = 0; j < calls->Count; j++)
-								WriteCall(calls->Pointers[j].address, calls->Pointers[j].data);
-						const PointerList *pointers = (const PointerList *)GetProcAddress(module, "Pointers");
-						if (pointers)
-							for (int j = 0; j < pointers->Count; j++)
-								WriteData((void **)pointers->Pointers[j].address, pointers->Pointers[j].data);
-						RegisterEvent(modFrameEvents, module, "OnFrame");
+						if (info->GameVersion == GameVer)
+						{
+							const ModInitFunc init = (const ModInitFunc)GetProcAddress(module, "Init");
+							if (init)
+								initfuncs.push_back({ init, mod_dirA });
+							const PatchList *patches = (const PatchList *)GetProcAddress(module, "Patches");
+							if (patches)
+								for (int j = 0; j < patches->Count; j++)
+									WriteData(patches->Patches[j].address, patches->Patches[j].data, patches->Patches[j].datasize);
+							const PointerList *jumps = (const PointerList *)GetProcAddress(module, "Jumps");
+							if (jumps)
+								for (int j = 0; j < jumps->Count; j++)
+									WriteJump(jumps->Pointers[j].address, jumps->Pointers[j].data);
+							const PointerList *calls = (const PointerList *)GetProcAddress(module, "Calls");
+							if (calls)
+								for (int j = 0; j < calls->Count; j++)
+									WriteCall(calls->Pointers[j].address, calls->Pointers[j].data);
+							const PointerList *pointers = (const PointerList *)GetProcAddress(module, "Pointers");
+							if (pointers)
+								for (int j = 0; j < pointers->Count; j++)
+									WriteData((void **)pointers->Pointers[j].address, pointers->Pointers[j].data);
+							RegisterEvent(modFrameEvents, module, "OnFrame");
+						}
+						else
+						{
+							const string dll_filenameA = UTF16toMBS(dll_filename, CP_ACP);
+							if (ConsoleEnabled)
+								PrintDebug("File \"%s\" is not built for the current version of the game.\n", dll_filenameA.c_str());
+							errors.push_back(std::pair<string, string>(mod_nameA, "Not a valid mod file."));
+						}
 					}
 					else
 					{
 						const string dll_filenameA = UTF16toMBS(dll_filename, CP_ACP);
 						if (ConsoleEnabled)
-							PrintDebug("File \"%s\" is not built for the current version of the game.\n", dll_filenameA.c_str());
+							PrintDebug("File \"%s\" is not a valid mod file.\n", dll_filenameA.c_str());
 						errors.push_back(std::pair<string, string>(mod_nameA, "Not a valid mod file."));
 					}
-				}
-				else
-				{
-					const string dll_filenameA = UTF16toMBS(dll_filename, CP_ACP);
-					if (ConsoleEnabled)
-						PrintDebug("File \"%s\" is not a valid mod file.\n", dll_filenameA.c_str());
-					errors.push_back(std::pair<string, string>(mod_nameA, "Not a valid mod file."));
 				}
 			}
 		}
