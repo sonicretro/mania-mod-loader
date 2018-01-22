@@ -204,6 +204,7 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int
 	strncpy(buf, "Data/Music/", MAX_PATH);
 	strncat(buf, name, MAX_PATH);
 	string newname = fileMap.replaceFile(buf);
+	string ext = GetExtension(newname);
 	if (newname == buf)
 	{
 		fileinfo fi;
@@ -222,7 +223,8 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int
 	}
 	else
 	{
-		basschan = BASS_VGMSTREAM_StreamCreate(newname.c_str(), BASS_STREAM_DECODE);
+		if (ext != "ogg" && ext != "mp3")
+			basschan = BASS_VGMSTREAM_StreamCreate(newname.c_str(), BASS_STREAM_DECODE);
 		if (basschan == 0)
 		{
 			useloop = loopstart > 0;
