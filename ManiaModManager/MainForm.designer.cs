@@ -46,12 +46,14 @@
 			this.tabPage2 = new System.Windows.Forms.TabPage();
 			this.codesCheckedListBox = new System.Windows.Forms.CheckedListBox();
 			this.tabPage4 = new System.Windows.Forms.TabPage();
+			this.installURLHandlerButton = new System.Windows.Forms.Button();
 			this.startingScene = new System.Windows.Forms.ComboBox();
 			this.enableDebugConsole = new System.Windows.Forms.CheckBox();
 			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
 			this.modContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.openFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.installURLHandlerButton = new System.Windows.Forms.Button();
+			this.speedShoesTempoCheckBox = new System.Windows.Forms.CheckBox();
+			this.blueSpheresTempoCheckBox = new System.Windows.Forms.CheckBox();
 			label1 = new System.Windows.Forms.Label();
 			this.tabControl1.SuspendLayout();
 			this.tabPage1.SuspendLayout();
@@ -63,7 +65,7 @@
 			// label1
 			// 
 			label1.AutoSize = true;
-			label1.Location = new System.Drawing.Point(6, 33);
+			label1.Location = new System.Drawing.Point(6, 32);
 			label1.Name = "label1";
 			label1.Size = new System.Drawing.Size(80, 13);
 			label1.TabIndex = 1;
@@ -244,6 +246,8 @@
 			// 
 			// tabPage4
 			// 
+			this.tabPage4.Controls.Add(this.blueSpheresTempoCheckBox);
+			this.tabPage4.Controls.Add(this.speedShoesTempoCheckBox);
 			this.tabPage4.Controls.Add(this.installURLHandlerButton);
 			this.tabPage4.Controls.Add(this.startingScene);
 			this.tabPage4.Controls.Add(label1);
@@ -255,6 +259,18 @@
 			this.tabPage4.TabIndex = 3;
 			this.tabPage4.Text = "Options";
 			this.tabPage4.UseVisualStyleBackColor = true;
+			// 
+			// installURLHandlerButton
+			// 
+			this.installURLHandlerButton.AutoSize = true;
+			this.installURLHandlerButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.installURLHandlerButton.Location = new System.Drawing.Point(6, 102);
+			this.installURLHandlerButton.Name = "installURLHandlerButton";
+			this.installURLHandlerButton.Size = new System.Drawing.Size(109, 23);
+			this.installURLHandlerButton.TabIndex = 3;
+			this.installURLHandlerButton.Text = "Install URL Handler";
+			this.installURLHandlerButton.UseVisualStyleBackColor = true;
+			this.installURLHandlerButton.Click += new System.EventHandler(this.installURLHandlerButton_Click);
 			// 
 			// startingScene
 			// 
@@ -352,7 +368,7 @@
             "Bad End - Knux",
             "Good End",
             "True End?"});
-			this.startingScene.Location = new System.Drawing.Point(92, 30);
+			this.startingScene.Location = new System.Drawing.Point(92, 29);
 			this.startingScene.Name = "startingScene";
 			this.startingScene.Size = new System.Drawing.Size(191, 21);
 			this.startingScene.TabIndex = 2;
@@ -360,7 +376,7 @@
 			// enableDebugConsole
 			// 
 			this.enableDebugConsole.AutoSize = true;
-			this.enableDebugConsole.Location = new System.Drawing.Point(7, 7);
+			this.enableDebugConsole.Location = new System.Drawing.Point(6, 6);
 			this.enableDebugConsole.Name = "enableDebugConsole";
 			this.enableDebugConsole.Size = new System.Drawing.Size(135, 17);
 			this.enableDebugConsole.TabIndex = 0;
@@ -381,17 +397,25 @@
 			this.openFolderToolStripMenuItem.Text = "Open folder";
 			this.openFolderToolStripMenuItem.Click += new System.EventHandler(this.openFolderToolStripMenuItem_Click);
 			// 
-			// installURLHandlerButton
+			// speedShoesTempoCheckBox
 			// 
-			this.installURLHandlerButton.AutoSize = true;
-			this.installURLHandlerButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-			this.installURLHandlerButton.Location = new System.Drawing.Point(6, 57);
-			this.installURLHandlerButton.Name = "installURLHandlerButton";
-			this.installURLHandlerButton.Size = new System.Drawing.Size(109, 23);
-			this.installURLHandlerButton.TabIndex = 3;
-			this.installURLHandlerButton.Text = "Install URL Handler";
-			this.installURLHandlerButton.UseVisualStyleBackColor = true;
-			this.installURLHandlerButton.Click += new System.EventHandler(this.installURLHandlerButton_Click);
+			this.speedShoesTempoCheckBox.AutoSize = true;
+			this.speedShoesTempoCheckBox.Location = new System.Drawing.Point(6, 56);
+			this.speedShoesTempoCheckBox.Name = "speedShoesTempoCheckBox";
+			this.speedShoesTempoCheckBox.Size = new System.Drawing.Size(259, 17);
+			this.speedShoesTempoCheckBox.TabIndex = 4;
+			this.speedShoesTempoCheckBox.Text = "Change music tempo when you get Speed Shoes";
+			this.speedShoesTempoCheckBox.UseVisualStyleBackColor = true;
+			// 
+			// blueSpheresTempoCheckBox
+			// 
+			this.blueSpheresTempoCheckBox.AutoSize = true;
+			this.blueSpheresTempoCheckBox.Location = new System.Drawing.Point(6, 79);
+			this.blueSpheresTempoCheckBox.Name = "blueSpheresTempoCheckBox";
+			this.blueSpheresTempoCheckBox.Size = new System.Drawing.Size(234, 17);
+			this.blueSpheresTempoCheckBox.TabIndex = 5;
+			this.blueSpheresTempoCheckBox.Text = "Change music tempo in Blue Spheres bonus";
+			this.blueSpheresTempoCheckBox.UseVisualStyleBackColor = true;
 			// 
 			// MainForm
 			// 
@@ -445,5 +469,7 @@
 		private System.Windows.Forms.CheckBox enableDebugConsole;
 		private System.Windows.Forms.ComboBox startingScene;
 		private System.Windows.Forms.Button installURLHandlerButton;
+		private System.Windows.Forms.CheckBox blueSpheresTempoCheckBox;
+		private System.Windows.Forms.CheckBox speedShoesTempoCheckBox;
 	}
 }

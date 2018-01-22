@@ -6,7 +6,9 @@
 #include <algorithm>
 #include <vector>
 #include <sstream>
+#include "bass.h"
 #include "bass_vgmstream.h"
+#include "bass_fx.h"
 #include "CodeParser.hpp"
 #include "IniFile.hpp"
 #include "TextConv.hpp"
@@ -24,10 +26,10 @@ using std::vector;
 using std::unordered_map;
 
 /**
-* Change write protection of the .xtext section.
+* Change write protection of the .trace section.
 * @param protect True to protect; false to unprotect.
 */
-static void SetXTextWriteProtection(bool protect)
+static void SetRDataWriteProtection(bool protect)
 {
 	// Reference: https://stackoverflow.com/questions/22588151/how-to-find-data-segment-and-code-segment-range-in-program
 
@@ -42,7 +44,7 @@ static void SetXTextWriteProtection(bool protect)
 	// Find the .rdata section.
 	for (unsigned int i = pNtHdr->FileHeader.NumberOfSections; i > 0; i--, pSectionHdr++)
 	{
-		if (strncmp(reinterpret_cast<const char*>(pSectionHdr->Name), ".xtext", sizeof(pSectionHdr->Name)) != 0)
+		if (strncmp(reinterpret_cast<const char*>(pSectionHdr->Name), ".trace", sizeof(pSectionHdr->Name)) != 0)
 			continue;
 
 		const intptr_t vaddr = reinterpret_cast<intptr_t>(hModule) + pSectionHdr->VirtualAddress;
@@ -66,8 +68,8 @@ int CheckFile_i(char *buf)
 	return !ReadFromPack;
 }
 
-int loc_5A08DB = 0x5A08DB;
-int loc_5A097B = 0x5A097B;
+int loc_5A07DB = 0x5A07DB;
+int loc_5A087B = 0x5A087B;
 __declspec(naked) void CheckFile()
 {
 	__asm
@@ -78,18 +80,28 @@ __declspec(naked) void CheckFile()
 		add esp, 4
 		test eax, eax
 		jnz blah
-		jmp loc_5A097B
+		jmp loc_5A087B
 	blah:
-		jmp loc_5A08DB
+		jmp loc_5A07DB
 	}
 }
 
 unordered_map<string, unsigned int> musicloops;
 Trampoline *musictramp;
-Trampoline *musictramp2;
+int __cdecl PlayMusicFile_Normal(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
+{
+	string namestr = name;
+	std::transform(namestr.begin(), namestr.end(), namestr.begin(), tolower);
+	auto iter = musicloops.find(namestr);
+	if (iter != musicloops.cend())
+		loopstart = iter->second;
+	auto orig = (decltype(PlayMusicFile_Normal)*)musictramp->Target();
+	return orig(name, a2, a3, loopstart, a5);
+}
+
 bool enablevgmstream;
 DWORD basschan;
-bool isbassmusic = false;
+char *musicbuf = nullptr;
 
 struct struct_0
 {
@@ -124,8 +136,23 @@ struct MusicInfo
 	int field_264;
 };
 
-DataArray(struct_0, stru_D7ACA0, 0xD7ACA0, 16);
-DataPointer(MusicInfo *, MusicSlots, 0xD84664);
+void *ReadFileData_ptr = (void*)0x5A0AA0;
+inline int ReadFileData(void *buffer, fileinfo *a2, unsigned int _size)
+{
+	int result;
+	__asm
+	{
+		push [_size]
+		mov ecx, [a2]
+		mov edx, [buffer]
+		call ReadFileData_ptr
+		add esp, 4
+		mov result, eax
+	}
+	return result;
+}
+
+DataArray(struct_0, stru_D79CA0, 0xD79CA0, 16);
 int oldsong = -1;
 char oldstatus = 0;
 /**
@@ -140,139 +167,138 @@ static void __stdcall onTrackEnd(HSYNC handle, DWORD channel, DWORD data, void *
 	BASS_ChannelStop(channel);
 	BASS_StreamFree(channel);
 	if (oldsong != -1)
-		oldstatus = stru_D7ACA0[oldsong].playStatus = 0;
+		oldstatus = stru_D79CA0[oldsong].playStatus = 0;
 }
 
-DataPointer(void*, Memory, 0xD7AEE0);
-ThiscallFunctionPointer(void, sub_597460, (int a1), 0x597460);
-FunctionPointer(void, _free, (void *a1), 0x609FCC);
-int __cdecl PlaySong_r(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
+QWORD loopPoint;
+static void __stdcall LoopTrack(HSYNC handle, DWORD channel, DWORD data, void *user)
 {
+	BASS_ChannelSetPosition(channel, loopPoint, BASS_POS_BYTE);
+}
+
+bool bluespheretempo = false;
+int bluespheretime = -1;
+
+int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
+{
+	if (stru_D79CA0[a2].playStatus == 3)
+		return -1;
 	string namestr = name;
 	std::transform(namestr.begin(), namestr.end(), namestr.begin(), tolower);
 	auto iter = musicloops.find(namestr);
 	if (iter != musicloops.cend())
 		loopstart = iter->second;
-	if (enablevgmstream)
+	if (basschan != 0)
 	{
-		if (basschan != 0)
+		BASS_ChannelStop(basschan);
+		BASS_StreamFree(basschan);
+		basschan = 0;
+	}
+	if (musicbuf)
+	{
+		delete[] musicbuf;
+		musicbuf = nullptr;
+	}
+	bool useloop = false;
+	char buf[MAX_PATH];
+	strncpy(buf, "Data/Music/", MAX_PATH);
+	strncat(buf, name, MAX_PATH);
+	string newname = fileMap.replaceFile(buf);
+	if (newname == buf)
+	{
+		fileinfo fi;
+		if (LoadFile(buf, &fi) == 1)
 		{
-			BASS_ChannelStop(basschan);
-			BASS_StreamFree(basschan);
-			basschan = 0;
-		}
-		char buf[MAX_PATH];
-		strncpy(buf, "Data\\Music\\", MAX_PATH);
-		strncat(buf, name, MAX_PATH);
-		string newname = fileMap.replaceFile(buf);
-		string ext = GetExtension(newname);
-		if (ext != "ogg")
-		{
-			if (Memory)
+			musicbuf = new char[fi.size];
+			ReadFileData(musicbuf, &fi, fi.size);
+			if (fi.file)
 			{
-				sub_597460((int)Memory);
-				if (!*((_DWORD *)Memory + 17))
-					_free(Memory);
+				((decltype(fclose)*)0x37FB164)(fi.file);
+				fi.file = nullptr;
 			}
-			basschan = BASS_VGMSTREAM_StreamCreate(newname.c_str(), 0);
-			if (basschan != 0)
-			{
-				// Stream opened!
-				isbassmusic = true;
-				stru_D7ACA0[a2].anonymous_0 = *(int*)0xD7CEF0;
-				stru_D7ACA0[a2].anonymous_4 = *(int*)0xD7CEF4;
-				*(_DWORD *)&stru_D7ACA0[a2].anonymous_8 = 0x3FF00FF;
-				stru_D7ACA0[a2].hasLoop = 0;
-				stru_D7ACA0[a2].anonymous_5 = 0;
-				stru_D7ACA0[a2].volume = 1;
-				stru_D7ACA0[a2].anonymous_1 = 0;
-				stru_D7ACA0[a2].anonymous_3 = 0x10000;
-				BASS_ChannelPlay(basschan, false);
-				BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, MusicVolume);
-				BASS_ChannelSetSync(basschan, BASS_SYNC_END, 0, onTrackEnd, nullptr);
-				stru_D7ACA0[a2].playStatus = 2;
-				return a2;
-			}
-			isbassmusic = false;
-			stru_D7ACA0[a2].playStatus = 0;
-			return -1;
+			useloop = loopstart > 0;
+			basschan = BASS_StreamCreateFile(TRUE, musicbuf, 0, fi.size, BASS_STREAM_DECODE | (useloop ? BASS_SAMPLE_LOOP : 0));
 		}
 	}
-	isbassmusic = false;
-	auto orig = (decltype(PlaySong_r)*)musictramp->Target();
-	return orig(name, a2, a3, loopstart, a5);
-}
-
-void __fastcall sub_599780_r(void *thing)
-{
-	if (!isbassmusic)
+	else
 	{
-		auto orig = (decltype(sub_599780_r)*)musictramp2->Target();
-		orig(thing);
+		basschan = BASS_VGMSTREAM_StreamCreate(newname.c_str(), BASS_STREAM_DECODE);
+		if (basschan == 0)
+		{
+			useloop = loopstart > 0;
+			basschan = BASS_StreamCreateFile(FALSE, newname.c_str(), 0, 0, BASS_STREAM_DECODE | (useloop ? BASS_SAMPLE_LOOP : 0));
+		}
 	}
-}
-
-const int loc_4016AE = 0x4016AE;
-const int loc_4016C1 = 0x4016C1;
-__declspec(naked) void loc_4016A9_r()
-{
-	__asm
+	if (basschan != 0)
 	{
-		mov al, [isbassmusic]
-		test al, al
-		jnz bass
-		mov eax, 0xD7AEE0
-		jmp loc_4016AE
-	bass:
-		jmp loc_4016C1
+		basschan = BASS_FX_TempoCreate(basschan, BASS_FX_FREESOURCE);
+		// Stream opened!
+		stru_D79CA0[a2].anonymous_0 = *(int*)0xD7BEF0;
+		stru_D79CA0[a2].anonymous_4 = *(int*)0xD7BEF4;
+		*(_DWORD *)&stru_D79CA0[a2].anonymous_8 = 0x3FF00FF;
+		stru_D79CA0[a2].hasLoop = useloop;
+		stru_D79CA0[a2].anonymous_5 = 0;
+		stru_D79CA0[a2].volume = 1;
+		stru_D79CA0[a2].anonymous_1 = 0;
+		stru_D79CA0[a2].anonymous_3 = 0x10000;
+		BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, MusicVolume * 0.5f);
+		BASS_ChannelPlay(basschan, false);
+		if (useloop)
+		{
+			loopPoint = loopstart * 4;
+			BASS_ChannelSetSync(basschan, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, LoopTrack, nullptr);
+		}
+		else
+			BASS_ChannelSetSync(basschan, BASS_SYNC_END, 0, onTrackEnd, nullptr);
+		stru_D79CA0[a2].playStatus = 2;
+		if (bluespheretempo && !_stricmp(name, "bluespheresspd.ogg"))
+			bluespheretime = 0;
+		else
+			bluespheretime = -1;
+		return a2;
 	}
+	stru_D79CA0[a2].playStatus = 0;
+	return -1;
 }
 
-const int loc_5C96E3 = 0x5C96E3;
-const int loc_5C9712 = 0x5C9712;
-__declspec(naked) void loc_5C96DE_r()
+void SpeedUpMusic()
 {
-	__asm
-	{
-		mov al, [isbassmusic]
-		test al, al
-		jnz bass
-		mov eax, 0xD7AEE0
-		jmp loc_5C96E3
-	bass:
-		jmp loc_5C9712
-	}
+	BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, 0.5f);
 }
 
-VoidFunc(sub_599720, 0x599720);
+void SlowDownMusic()
+{
+	BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, 0);
+}
+
+VoidFunc(sub_599640, 0x599640);
 void ResumeSound()
 {
-	if (isbassmusic)
-		BASS_ChannelPlay(basschan, false);
-	sub_599720();
+	BASS_ChannelPlay(basschan, false);
+	sub_599640();
 }
 
-VoidFunc(sub_5996C0, 0x5996C0);
+VoidFunc(sub_5995E0, 0x5995E0);
 void PauseSound()
 {
-	if (isbassmusic)
-		BASS_ChannelPause(basschan);
-	sub_5996C0();
+	BASS_ChannelPause(basschan);
+	sub_5995E0();
 }
 
 // Code Parser.
 static CodeParser codeParser;
 
+DataPointer(MusicInfo *, MusicSlots, 0xD83664);
 static void __cdecl ProcessCodes()
 {
 	codeParser.processCodeList();
 	RaiseEvents(modFrameEvents);
-	if (MusicSlots != nullptr && isbassmusic)
+	if (MusicSlots != nullptr && basschan != 0)
 	{
 		int song = MusicSlots->CurrentSong;
 		if (song != -1)
 		{
-			char status = stru_D7ACA0[song].playStatus;
+			char status = stru_D79CA0[song].playStatus;
 			if (song == oldsong && status != oldstatus)
 				switch (status)
 				{
@@ -293,7 +319,12 @@ static void __cdecl ProcessCodes()
 #endif
 				}
 			oldstatus = status;
-			BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, stru_D7ACA0[song].volume * MusicVolume);
+			BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, stru_D79CA0[song].volume * 0.5f * MusicVolume);
+			if (bluespheretime != -1 && bluespheretime < 7200 && status == 2 && ++bluespheretime % 1800 == 0)
+			{
+				BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, (100 / (100 - (8 * bluespheretime / 1800.0f))) - 1);
+				PrintDebug("Speeding up\n");
+			}
 		}
 		else
 			oldstatus = 0;
@@ -302,7 +333,19 @@ static void __cdecl ProcessCodes()
 	MainGameLoop();
 }
 
-VoidFunc(sub_5BD1C0, 0x5BD1C0);
+static vector<wstring> split(const wstring &s, wchar_t delim)
+{
+	vector<wstring> elems;
+	std::wstringstream ss(s);
+	wstring item;
+	while (std::getline(ss, item, delim))
+	{
+		elems.push_back(item);
+	}
+	return elems;
+}
+
+VoidFunc(sub_5BD0E0, 0x5BD0E0);
 void InitMods()
 {
 	FILE *f_ini = _wfopen(L"mods\\ManiaModLoader.ini", L"r");
@@ -314,7 +357,7 @@ void InitMods()
 	unique_ptr<IniFile> ini(new IniFile(f_ini));
 	fclose(f_ini);
 
-	SetXTextWriteProtection(false);
+	SetRDataWriteProtection(false);
 
 	// Get exe's path and filename.
 	wchar_t pathbuf[MAX_PATH];
@@ -347,6 +390,24 @@ void InitMods()
 #endif /* MODLOADER_GIT_DESCRIBE */
 #endif /* MODLOADER_GIT_VERSION */
 	}
+
+	bool speedshoestempo = false;
+	if (enablevgmstream = (bool)BASS_Init(-1, 44100, 0, nullptr, nullptr))
+	{
+		WriteJump((void*)0x5992C0, PlayMusicFile_BASS);
+		WriteData((char*)0x5996A0, (char)0xC3);
+		WriteData((char*)0x4016A7, (char)0xEB);
+		WriteData((char*)0x401AD9, (char)0xEB);
+		WriteCall((void*)0x5CADA8, PauseSound);
+		WriteCall((void*)0x5CADEB, ResumeSound);
+		WriteCall((void*)0x5CAE95, PauseSound);
+		WriteCall((void*)0x5CAEB6, ResumeSound);
+		WriteData((char*)0x5C95DF, (char)0xEB);
+		speedshoestempo = settings->getBool("SpeedShoesTempoChange");
+		bluespheretempo = settings->getBool("BlueSpheresTempoChange");
+	}
+	else
+		musictramp = new Trampoline(0x5992C0, 0x5992C6, PlayMusicFile_Normal);
 
 	vector<std::pair<ModInitFunc, string>> initfuncs;
 	vector<std::pair<string, string>> errors;
@@ -387,67 +448,70 @@ void InitMods()
 		// Check if the mod has a DLL file.
 		if (modinfo->hasKeyNonEmpty("DLLFile"))
 		{
-			// Prepend the mod directory.
-			// TODO: SetDllDirectory().
-			wstring dll_filename = mod_dir + L'\\' + modinfo->getWString("DLLFile");
-			HMODULE module = LoadLibrary(dll_filename.c_str());
-			if (module == nullptr)
+			for (auto fn : split(modinfo->getWString("DLLFile"), L','))
 			{
-				DWORD error = GetLastError();
-				LPSTR buffer;
-				size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-					nullptr, error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&buffer, 0, nullptr);
-
-				string message(buffer, size);
-				LocalFree(buffer);
-
-				const string dll_filenameA = UTF16toMBS(dll_filename, CP_ACP);
-				if (ConsoleEnabled)
-					PrintDebug("Failed loading mod DLL \"%s\": %s\n", dll_filenameA.c_str(), message.c_str());
-				errors.push_back(std::pair<string, string>(mod_nameA, "DLL error - " + message));
-			}
-			else
-			{
-				const ModInfo *info = (const ModInfo *)GetProcAddress(module, "ManiaModInfo");
-				if (info)
+				// Prepend the mod directory.
+				// TODO: SetDllDirectory().
+				wstring dll_filename = mod_dir + L'\\' + fn;
+				HMODULE module = LoadLibrary(dll_filename.c_str());
+				if (module == nullptr)
 				{
-					if (info->GameVersion == GameVer)
+					DWORD error = GetLastError();
+					LPSTR buffer;
+					size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+						nullptr, error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&buffer, 0, nullptr);
+
+					string message(buffer, size);
+					LocalFree(buffer);
+
+					const string dll_filenameA = UTF16toMBS(dll_filename, CP_ACP);
+					if (ConsoleEnabled)
+						PrintDebug("Failed loading mod DLL \"%s\": %s\n", dll_filenameA.c_str(), message.c_str());
+					errors.push_back(std::pair<string, string>(mod_nameA, "DLL error - " + message));
+				}
+				else
+				{
+					const ModInfo *info = (const ModInfo *)GetProcAddress(module, "ManiaModInfo");
+					if (info)
 					{
-						const ModInitFunc init = (const ModInitFunc)GetProcAddress(module, "Init");
-						if (init)
-							initfuncs.push_back({ init, mod_dirA });
-						const PatchList *patches = (const PatchList *)GetProcAddress(module, "Patches");
-						if (patches)
-							for (int j = 0; j < patches->Count; j++)
-								WriteData(patches->Patches[j].address, patches->Patches[j].data, patches->Patches[j].datasize);
-						const PointerList *jumps = (const PointerList *)GetProcAddress(module, "Jumps");
-						if (jumps)
-							for (int j = 0; j < jumps->Count; j++)
-								WriteJump(jumps->Pointers[j].address, jumps->Pointers[j].data);
-						const PointerList *calls = (const PointerList *)GetProcAddress(module, "Calls");
-						if (calls)
-							for (int j = 0; j < calls->Count; j++)
-								WriteCall(calls->Pointers[j].address, calls->Pointers[j].data);
-						const PointerList *pointers = (const PointerList *)GetProcAddress(module, "Pointers");
-						if (pointers)
-							for (int j = 0; j < pointers->Count; j++)
-								WriteData((void **)pointers->Pointers[j].address, pointers->Pointers[j].data);
-						RegisterEvent(modFrameEvents, module, "OnFrame");
+						if (info->GameVersion == GameVer)
+						{
+							const ModInitFunc init = (const ModInitFunc)GetProcAddress(module, "Init");
+							if (init)
+								initfuncs.push_back({ init, mod_dirA });
+							const PatchList *patches = (const PatchList *)GetProcAddress(module, "Patches");
+							if (patches)
+								for (int j = 0; j < patches->Count; j++)
+									WriteData(patches->Patches[j].address, patches->Patches[j].data, patches->Patches[j].datasize);
+							const PointerList *jumps = (const PointerList *)GetProcAddress(module, "Jumps");
+							if (jumps)
+								for (int j = 0; j < jumps->Count; j++)
+									WriteJump(jumps->Pointers[j].address, jumps->Pointers[j].data);
+							const PointerList *calls = (const PointerList *)GetProcAddress(module, "Calls");
+							if (calls)
+								for (int j = 0; j < calls->Count; j++)
+									WriteCall(calls->Pointers[j].address, calls->Pointers[j].data);
+							const PointerList *pointers = (const PointerList *)GetProcAddress(module, "Pointers");
+							if (pointers)
+								for (int j = 0; j < pointers->Count; j++)
+									WriteData((void **)pointers->Pointers[j].address, pointers->Pointers[j].data);
+							RegisterEvent(modFrameEvents, module, "OnFrame");
+						}
+						else
+						{
+							const string dll_filenameA = UTF16toMBS(dll_filename, CP_ACP);
+							if (ConsoleEnabled)
+								PrintDebug("File \"%s\" is not built for the current version of the game.\n", dll_filenameA.c_str());
+							errors.push_back(std::pair<string, string>(mod_nameA, "Not a valid mod file."));
+						}
 					}
 					else
 					{
 						const string dll_filenameA = UTF16toMBS(dll_filename, CP_ACP);
 						if (ConsoleEnabled)
-							PrintDebug("File \"%s\" is not built for the current version of the game.\n", dll_filenameA.c_str());
+							PrintDebug("File \"%s\" is not a valid mod file.\n", dll_filenameA.c_str());
 						errors.push_back(std::pair<string, string>(mod_nameA, "Not a valid mod file."));
 					}
-				}
-				else
-				{
-					const string dll_filenameA = UTF16toMBS(dll_filename, CP_ACP);
-					if (ConsoleEnabled)
-						PrintDebug("File \"%s\" is not a valid mod file.\n", dll_filenameA.c_str());
-					errors.push_back(std::pair<string, string>(mod_nameA, "Not a valid mod file."));
 				}
 			}
 		}
@@ -462,6 +526,16 @@ void InitMods()
 				musicloops[name] = std::stoi(iter->second);
 			}
 		}
+		if (modinfo->getBool("BlueSpheresTempoChange"))
+			bluespheretempo = true;
+		if (enablevgmstream && modinfo->getBool("SpeedShoesTempoChange"))
+			speedshoestempo = true;
+	}
+
+	if (speedshoestempo)
+	{
+		WriteCall((void*)0x43DCE6, SpeedUpMusic);
+		WriteCall((void*)0x47EA16, SlowDownMusic);
 	}
 
 	if (!errors.empty())
@@ -574,22 +648,13 @@ void InitMods()
 		codes_str.close();
 	}
 
-	WriteJump((void*)0x5A08CE, CheckFile);
-	WriteCall((void*)0x5CAAFF, ProcessCodes);
-	enablevgmstream = (bool)BASS_Init(-1, 44100, 0, nullptr, nullptr);
-	musictramp = new Trampoline(0x5993A0, 0x5993A6, PlaySong_r);
-	musictramp2 = new Trampoline(0x599780, 0x599786, sub_599780_r);
-	WriteJump((void*)0x4016A9, loc_4016A9_r);
-	WriteJump((void*)0x5C96DE, loc_5C96DE_r);
-	WriteCall((void*)0x5CAE98, PauseSound);
-	WriteCall((void*)0x5CAEDB, ResumeSound);
-	WriteCall((void*)0x5CAF85, PauseSound);
-	WriteCall((void*)0x5CAFA6, ResumeSound);
+	WriteJump((void*)0x5A07CE, CheckFile);
+	WriteCall((void*)0x5CAA0F, ProcessCodes);
 
-	sub_5BD1C0();
+	sub_5BD0E0();
 }
 
-static const char verchk[] = { 0xE8u, 0x34, 0x2C, 0xFFu, 0xFFu, 0xE8u, 0xFFu, 0x6E, 0xFDu, 0xFFu };
+static const char verchk[] = { 0xE8u, 0x44, 0x2C, 0xFFu, 0xFFu, 0xE8u, 0xEFu, 0x6E, 0xFDu, 0xFFu };
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
@@ -598,10 +663,10 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		if (memcmp(verchk, (const char *)0x5CA587, sizeof(verchk)) != 0)
-			MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader, or instructions on downgrading your copy of the game.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
+		if (memcmp(verchk, (const char *)0x5CA497, sizeof(verchk)) != 0)
+			MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
 		else
-			WriteCall((void*)0x5CA587, InitMods);
+			WriteCall((void*)0x5CA497, InitMods);
 		break;
 	case DLL_PROCESS_DETACH:
 		break;
