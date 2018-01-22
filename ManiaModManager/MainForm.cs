@@ -54,6 +54,8 @@ namespace ManiaModManager
 
 			enableDebugConsole.Checked = loaderini.EnableConsole;
 			startingScene.SelectedIndex = loaderini.StartingScene;
+			speedShoesTempoCheckBox.Checked = loaderini.SpeedShoesTempoChange;
+			blueSpheresTempoCheckBox.Checked = loaderini.BlueSpheresTempoChange;
 
 			if (File.Exists(datadllpath))
 			{
@@ -337,6 +339,8 @@ namespace ManiaModManager
 
 			loaderini.EnableConsole = enableDebugConsole.Checked;
 			loaderini.StartingScene = startingScene.SelectedIndex;
+			loaderini.SpeedShoesTempoChange = speedShoesTempoCheckBox.Checked;
+			loaderini.BlueSpheresTempoChange = blueSpheresTempoCheckBox.Checked;
 
 			IniSerializer.Serialize(loaderini, loaderinipath);
 

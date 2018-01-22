@@ -6,6 +6,9 @@
 #include <algorithm>
 #include <vector>
 #include <sstream>
+#include "bass.h"
+#include "bass_vgmstream.h"
+#include "bass_fx.h"
 #include "CodeParser.hpp"
 #include "IniFile.hpp"
 #include "TextConv.hpp"
@@ -83,28 +86,251 @@ __declspec(naked) void CheckFile()
 	}
 }
 
-// Code Parser.
-static CodeParser codeParser;
-
-static void __cdecl ProcessCodes()
-{
-	codeParser.processCodeList();
-	RaiseEvents(modFrameEvents);
-	MainGameLoop();
-}
-
 unordered_map<string, unsigned int> musicloops;
 Trampoline *musictramp;
-
-int __cdecl PlaySong_r(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
+int __cdecl PlayMusicFile_Normal(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
 {
 	string namestr = name;
 	std::transform(namestr.begin(), namestr.end(), namestr.begin(), tolower);
 	auto iter = musicloops.find(namestr);
 	if (iter != musicloops.cend())
 		loopstart = iter->second;
-	auto orig = (decltype(PlaySong_r)*)musictramp->Target();
+	auto orig = (decltype(PlayMusicFile_Normal)*)musictramp->Target();
 	return orig(name, a2, a3, loopstart, a5);
+}
+
+bool enablevgmstream;
+DWORD basschan;
+char *musicbuf = nullptr;
+
+struct struct_0
+{
+	int anonymous_0;
+	int anonymous_1;
+	float volume;
+	int anonymous_3;
+	int anonymous_4;
+	int anonymous_5;
+	int anonymous_6;
+	int hasLoop;
+	__int16 anonymous_8;
+	_BYTE gap22[1];
+	char playStatus;
+};
+
+struct MusicInfo
+{
+	__int16 field_0;
+	_BYTE gap2[1];
+	char Names[32][16];
+	char field_203;
+	int LoopStarts[16];
+	int field_244;
+	int CurrentSong;
+	int field_24C;
+	int field_250;
+	int field_254;
+	int field_258;
+	int field_25C;
+	int field_260;
+	int field_264;
+};
+
+void *ReadFileData_ptr = (void*)0x5A0AA0;
+inline int ReadFileData(void *buffer, fileinfo *a2, unsigned int _size)
+{
+	int result;
+	__asm
+	{
+		push [_size]
+		mov ecx, [a2]
+		mov edx, [buffer]
+		call ReadFileData_ptr
+		add esp, 4
+		mov result, eax
+	}
+	return result;
+}
+
+DataArray(struct_0, stru_D79CA0, 0xD79CA0, 16);
+int oldsong = -1;
+char oldstatus = 0;
+/**
+* BASS callback: Current track has ended.
+* @param handle
+* @param channel
+* @param data
+* @param user
+*/
+static void __stdcall onTrackEnd(HSYNC handle, DWORD channel, DWORD data, void *user)
+{
+	BASS_ChannelStop(channel);
+	BASS_StreamFree(channel);
+	if (oldsong != -1)
+		oldstatus = stru_D79CA0[oldsong].playStatus = 0;
+}
+
+QWORD loopPoint;
+static void __stdcall LoopTrack(HSYNC handle, DWORD channel, DWORD data, void *user)
+{
+	BASS_ChannelSetPosition(channel, loopPoint, BASS_POS_BYTE);
+}
+
+bool bluespheretempo = false;
+int bluespheretime = -1;
+
+int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
+{
+	if (stru_D79CA0[a2].playStatus == 3)
+		return -1;
+	string namestr = name;
+	std::transform(namestr.begin(), namestr.end(), namestr.begin(), tolower);
+	auto iter = musicloops.find(namestr);
+	if (iter != musicloops.cend())
+		loopstart = iter->second;
+	if (basschan != 0)
+	{
+		BASS_ChannelStop(basschan);
+		BASS_StreamFree(basschan);
+		basschan = 0;
+	}
+	if (musicbuf)
+	{
+		delete[] musicbuf;
+		musicbuf = nullptr;
+	}
+	bool useloop = false;
+	char buf[MAX_PATH];
+	strncpy(buf, "Data/Music/", MAX_PATH);
+	strncat(buf, name, MAX_PATH);
+	string newname = fileMap.replaceFile(buf);
+	if (newname == buf)
+	{
+		fileinfo fi;
+		if (LoadFile(buf, &fi) == 1)
+		{
+			musicbuf = new char[fi.size];
+			ReadFileData(musicbuf, &fi, fi.size);
+			if (fi.file)
+			{
+				((decltype(fclose)*)0x37FB164)(fi.file);
+				fi.file = nullptr;
+			}
+			useloop = loopstart > 0;
+			basschan = BASS_StreamCreateFile(TRUE, musicbuf, 0, fi.size, BASS_STREAM_DECODE | (useloop ? BASS_SAMPLE_LOOP : 0));
+		}
+	}
+	else
+	{
+		basschan = BASS_VGMSTREAM_StreamCreate(newname.c_str(), BASS_STREAM_DECODE);
+		if (basschan == 0)
+		{
+			useloop = loopstart > 0;
+			basschan = BASS_StreamCreateFile(FALSE, newname.c_str(), 0, 0, BASS_STREAM_DECODE | (useloop ? BASS_SAMPLE_LOOP : 0));
+		}
+	}
+	if (basschan != 0)
+	{
+		basschan = BASS_FX_TempoCreate(basschan, BASS_FX_FREESOURCE);
+		// Stream opened!
+		stru_D79CA0[a2].anonymous_0 = *(int*)0xD7BEF0;
+		stru_D79CA0[a2].anonymous_4 = *(int*)0xD7BEF4;
+		*(_DWORD *)&stru_D79CA0[a2].anonymous_8 = 0x3FF00FF;
+		stru_D79CA0[a2].hasLoop = useloop;
+		stru_D79CA0[a2].anonymous_5 = 0;
+		stru_D79CA0[a2].volume = 1;
+		stru_D79CA0[a2].anonymous_1 = 0;
+		stru_D79CA0[a2].anonymous_3 = 0x10000;
+		BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, MusicVolume * 0.5f);
+		BASS_ChannelPlay(basschan, false);
+		if (useloop)
+		{
+			loopPoint = loopstart * 4;
+			BASS_ChannelSetSync(basschan, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, LoopTrack, nullptr);
+		}
+		else
+			BASS_ChannelSetSync(basschan, BASS_SYNC_END, 0, onTrackEnd, nullptr);
+		stru_D79CA0[a2].playStatus = 2;
+		if (bluespheretempo && !_stricmp(name, "bluespheresspd.ogg"))
+			bluespheretime = 0;
+		else
+			bluespheretime = -1;
+		return a2;
+	}
+	stru_D79CA0[a2].playStatus = 0;
+	return -1;
+}
+
+void SpeedUpMusic()
+{
+	BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, 0.5f);
+}
+
+void SlowDownMusic()
+{
+	BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, 0);
+}
+
+VoidFunc(sub_599640, 0x599640);
+void ResumeSound()
+{
+	BASS_ChannelPlay(basschan, false);
+	sub_599640();
+}
+
+VoidFunc(sub_5995E0, 0x5995E0);
+void PauseSound()
+{
+	BASS_ChannelPause(basschan);
+	sub_5995E0();
+}
+
+// Code Parser.
+static CodeParser codeParser;
+
+DataPointer(MusicInfo *, MusicSlots, 0xD83664);
+static void __cdecl ProcessCodes()
+{
+	codeParser.processCodeList();
+	RaiseEvents(modFrameEvents);
+	if (MusicSlots != nullptr && basschan != 0)
+	{
+		int song = MusicSlots->CurrentSong;
+		if (song != -1)
+		{
+			char status = stru_D79CA0[song].playStatus;
+			if (song == oldsong && status != oldstatus)
+				switch (status)
+				{
+				case 0:
+					BASS_ChannelStop(basschan);
+					BASS_StreamFree(basschan);
+					break;
+				case 2:
+					BASS_ChannelPlay(basschan, false);
+					break;
+				case 66:
+					BASS_ChannelPause(basschan);
+					break;
+#ifdef _DEBUG
+				default:
+					PrintDebug("Unknown status code %d\n", status);
+					break;
+#endif
+				}
+			oldstatus = status;
+			BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, stru_D79CA0[song].volume * 0.5f * MusicVolume);
+			if (bluespheretime != -1 && bluespheretime < 7200 && status == 2 && ++bluespheretime % 1800 == 0)
+			{
+				BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, (100 / (100 - (8 * bluespheretime / 1800.0f))) - 1);
+				PrintDebug("Speeding up\n");
+			}
+		}
+		else
+			oldstatus = 0;
+		oldsong = song;
+	}
+	MainGameLoop();
 }
 
 static vector<wstring> split(const wstring &s, wchar_t delim)
@@ -164,6 +390,24 @@ void InitMods()
 #endif /* MODLOADER_GIT_DESCRIBE */
 #endif /* MODLOADER_GIT_VERSION */
 	}
+
+	bool speedshoestempo = false;
+	if (enablevgmstream = (bool)BASS_Init(-1, 44100, 0, nullptr, nullptr))
+	{
+		WriteJump((void*)0x5992C0, PlayMusicFile_BASS);
+		WriteData((char*)0x5996A0, (char)0xC3);
+		WriteData((char*)0x4016A7, (char)0xEB);
+		WriteData((char*)0x401AD9, (char)0xEB);
+		WriteCall((void*)0x5CADA8, PauseSound);
+		WriteCall((void*)0x5CADEB, ResumeSound);
+		WriteCall((void*)0x5CAE95, PauseSound);
+		WriteCall((void*)0x5CAEB6, ResumeSound);
+		WriteData((char*)0x5C95DF, (char)0xEB);
+		speedshoestempo = settings->getBool("SpeedShoesTempoChange");
+		bluespheretempo = settings->getBool("BlueSpheresTempoChange");
+	}
+	else
+		musictramp = new Trampoline(0x5992C0, 0x5992C6, PlayMusicFile_Normal);
 
 	vector<std::pair<ModInitFunc, string>> initfuncs;
 	vector<std::pair<string, string>> errors;
@@ -282,6 +526,16 @@ void InitMods()
 				musicloops[name] = std::stoi(iter->second);
 			}
 		}
+		if (modinfo->getBool("BlueSpheresTempoChange"))
+			bluespheretempo = true;
+		if (enablevgmstream && modinfo->getBool("SpeedShoesTempoChange"))
+			speedshoestempo = true;
+	}
+
+	if (speedshoestempo)
+	{
+		WriteCall((void*)0x43DCE6, SpeedUpMusic);
+		WriteCall((void*)0x47EA16, SlowDownMusic);
 	}
 
 	if (!errors.empty())
@@ -396,7 +650,6 @@ void InitMods()
 
 	WriteJump((void*)0x5A07CE, CheckFile);
 	WriteCall((void*)0x5CAA0F, ProcessCodes);
-	musictramp = new Trampoline(0x5992C0, 0x5992C6, PlaySong_r);
 
 	sub_5BD0E0();
 }
