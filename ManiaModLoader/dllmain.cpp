@@ -178,6 +178,7 @@ static void __stdcall LoopTrack(HSYNC handle, DWORD channel, DWORD data, void *u
 
 bool bluespheretempo = false;
 int bluespheretime = -1;
+bool speedshoes;
 
 int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
 {
@@ -265,7 +266,7 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int
 
 void SpeedUpMusic()
 {
-	BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, 0.5f);
+	BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, 50.0f);
 }
 
 void SlowDownMusic()
@@ -289,6 +290,8 @@ void PauseSound()
 
 // Code Parser.
 static CodeParser codeParser;
+
+float bluespheretempos[]{ 0, 8.6956521739130434782608f, 19.047619047619047619f, 31.578947368421052631f, 47.0588235294117647f };
 
 DataPointer(MusicInfo *, MusicSlots, 0xD83664);
 static void __cdecl ProcessCodes()
@@ -323,10 +326,7 @@ static void __cdecl ProcessCodes()
 			oldstatus = status;
 			BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, stru_D79CA0[song].volume * 0.5f * MusicVolume);
 			if (bluespheretime != -1 && bluespheretime < 7200 && status == 2 && ++bluespheretime % 1800 == 0)
-			{
-				BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, (100 / (100 - (8 * bluespheretime / 1800.0f))) - 1);
-				PrintDebug("Speeding up\n");
-			}
+				BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, bluespheretempos[bluespheretime / 1800]);
 		}
 		else
 			oldstatus = 0;
