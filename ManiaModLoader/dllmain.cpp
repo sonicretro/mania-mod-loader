@@ -99,9 +99,6 @@ int __cdecl PlayMusicFile_Normal(char *name, unsigned int a2, int a3, unsigned i
 	return orig(name, a2, a3, loopstart, a5);
 }
 
-bool enablevgmstream;
-DWORD basschan;
-char *musicbuf = nullptr;
 
 struct struct_0
 {
@@ -153,6 +150,13 @@ inline int ReadFileData(void *buffer, fileinfo *a2, unsigned int _size)
 }
 
 DataArray(struct_0, stru_D79CA0, 0xD79CA0, 16);
+DWORD basschan;
+QWORD loopPoint;
+char *musicbuf = nullptr;
+bool one_up = false;
+DWORD lastbasschan = 0;
+QWORD lastlooppoint;
+char *lastmusicbuf = nullptr;
 int oldsong = -1;
 char oldstatus = 0;
 /**
@@ -166,19 +170,35 @@ static void __stdcall onTrackEnd(HSYNC handle, DWORD channel, DWORD data, void *
 {
 	BASS_ChannelStop(channel);
 	BASS_StreamFree(channel);
-	if (oldsong != -1)
+	if (musicbuf)
+	{
+		delete[] musicbuf;
+		musicbuf = nullptr;
+	}
+	if (one_up)
+	{
+		basschan = lastbasschan;
+		lastbasschan = 0;
+		loopPoint = lastlooppoint;
+		musicbuf = lastmusicbuf;
+		lastmusicbuf = nullptr;
+		BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, 0);
+		stru_D79CA0[oldsong].volume = 0;
+		BASS_ChannelPlay(basschan, FALSE);
+		one_up = false;
+	}
+	else if (oldsong != -1)
 		oldstatus = stru_D79CA0[oldsong].playStatus = 0;
 }
 
-QWORD loopPoint;
 static void __stdcall LoopTrack(HSYNC handle, DWORD channel, DWORD data, void *user)
 {
 	BASS_ChannelSetPosition(channel, loopPoint, BASS_POS_BYTE);
 }
 
+bool enablevgmstream;
 bool bluespheretempo = false;
 int bluespheretime = -1;
-bool speedshoes;
 
 int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
 {
@@ -189,16 +209,41 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int
 	auto iter = musicloops.find(namestr);
 	if (iter != musicloops.cend())
 		loopstart = iter->second;
-	if (basschan != 0)
+	if (!_stricmp(name, "1up.ogg"))
 	{
-		BASS_ChannelStop(basschan);
-		BASS_StreamFree(basschan);
+		one_up = true;
+		BASS_ChannelPause(basschan);
+		lastbasschan = basschan;
 		basschan = 0;
-	}
-	if (musicbuf)
-	{
-		delete[] musicbuf;
+		lastlooppoint = loopPoint;
+		lastmusicbuf = musicbuf;
 		musicbuf = nullptr;
+	}
+	else
+	{
+		one_up = false;
+		if (basschan != 0)
+		{
+			BASS_ChannelStop(basschan);
+			BASS_StreamFree(basschan);
+			basschan = 0;
+		}
+		if (musicbuf)
+		{
+			delete[] musicbuf;
+			musicbuf = nullptr;
+		}
+		if (lastbasschan != 0)
+		{
+			BASS_ChannelStop(lastbasschan);
+			BASS_StreamFree(lastbasschan);
+			lastbasschan = 0;
+		}
+		if (lastmusicbuf)
+		{
+			delete[] lastmusicbuf;
+			lastmusicbuf = nullptr;
+		}
 	}
 	bool useloop = false;
 	char buf[MAX_PATH];
@@ -244,7 +289,7 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int
 		stru_D79CA0[a2].volume = 1;
 		stru_D79CA0[a2].anonymous_1 = 0;
 		stru_D79CA0[a2].anonymous_3 = 0x10000;
-		BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, MusicVolume * 0.5f);
+		BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, 0.5f * MusicVolume);
 		BASS_ChannelPlay(basschan, false);
 		if (useloop)
 		{
@@ -398,8 +443,12 @@ void InitMods()
 	{
 		WriteJump((void*)0x5992C0, PlayMusicFile_BASS);
 		WriteData((char*)0x5996A0, (char)0xC3);
-		WriteData((char*)0x4016A7, (char)0xEB);
+		WriteData((char*)0x4016A9, (char)0xB8);
+		WriteData((int*)0x4016AA, 1);
+		WriteJump((void*)0x4016AE, (void*)0x4016C3);
 		WriteData((char*)0x401AD9, (char)0xEB);
+		WriteJump((void*)0x401B7A, (void*)0x401BB4);
+		WriteJump((void*)0x401C1D, (void*)0x401C39);
 		WriteCall((void*)0x5CADA8, PauseSound);
 		WriteCall((void*)0x5CADEB, ResumeSound);
 		WriteCall((void*)0x5CAE95, PauseSound);
