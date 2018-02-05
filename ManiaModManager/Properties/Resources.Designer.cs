@@ -59,5 +59,16 @@ namespace ManiaModManager.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This can cause MOD USER DATA (SAVE FILES, CONFIG FILES) TO BE LOST upon next update! To prevent this, you should never run this on mods you did not develop.
+        ///
+        ///Are you sure you wish to continue?.
+        /// </summary>
+        internal static string GenerateManifestWarning {
+            get {
+                return ResourceManager.GetString("GenerateManifestWarning", resourceCulture);
+            }
+        }
     }
 }

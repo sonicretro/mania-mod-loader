@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using IniFile;
 using ModManagerCommon;
@@ -21,11 +26,13 @@ namespace ManiaModManager
 			InitializeComponent();
 		}
 
+		private bool checkedForUpdates;
+
 		const string datadllpath = "d3d9.dll";
 		const string loaderinipath = "mods/ManiaModLoader.ini";
 		const string loaderdllpath = "mods/ManiaModLoader.dll";
 		ManiaLoaderInfo loaderini;
-		Dictionary<string, ModInfo> mods;
+		Dictionary<string, ManiaModInfo> mods;
 		const string codexmlpath = "mods/Codes.xml";
 		const string codedatpath = "mods/Codes.dat";
 		const string patchdatpath = "mods/Patches.dat";
@@ -33,6 +40,35 @@ namespace ManiaModManager
 		List<Code> codes;
 		bool installed;
 		bool suppressEvent;
+
+		readonly ModUpdater modUpdater = new ModUpdater();
+		BackgroundWorker updateChecker;
+		private bool manualModUpdate;
+
+		private static bool UpdateTimeElapsed(UpdateUnit unit, int amount, DateTime start)
+		{
+			if (unit == UpdateUnit.Always)
+			{
+				return true;
+			}
+
+			TimeSpan span = DateTime.UtcNow - start;
+
+			switch (unit)
+			{
+				case UpdateUnit.Hours:
+					return span.TotalHours >= amount;
+
+				case UpdateUnit.Days:
+					return span.TotalDays >= amount;
+
+				case UpdateUnit.Weeks:
+					return span.TotalDays / 7.0 >= amount;
+
+				default:
+					throw new ArgumentOutOfRangeException(nameof(unit), unit, null);
+			}
+		}
 
 		private static void SetDoubleBuffered(Control control, bool enable)
 		{
@@ -47,6 +83,9 @@ namespace ManiaModManager
 			SetDoubleBuffered(modListView, true);
 			loaderini = File.Exists(loaderinipath) ? IniSerializer.Deserialize<ManiaLoaderInfo>(loaderinipath) : new ManiaLoaderInfo();
 
+			if (CheckForUpdates())
+				return;
+
 			try { mainCodes = CodeList.Load(codexmlpath); }
 			catch { mainCodes = new CodeList() { Codes = new List<Code>() }; }
 
@@ -56,27 +95,19 @@ namespace ManiaModManager
 			startingScene.SelectedIndex = loaderini.StartingScene;
 			speedShoesTempoCheckBox.Checked = loaderini.SpeedShoesTempoChange;
 			blueSpheresTempoCheckBox.Checked = loaderini.BlueSpheresTempoChange;
+			checkUpdateStartup.Checked = loaderini.UpdateCheck;
+			checkUpdateModsStartup.Checked = loaderini.ModUpdateCheck;
+			comboUpdateFrequency.SelectedIndex = (int)loaderini.UpdateUnit;
+			numericUpdateFrequency.Value = loaderini.UpdateFrequency;
 
-			if (File.Exists(datadllpath))
+			CheckForModUpdates();
+
+			// If we've checked for updates, save the modified
+			// last update times without requiring the user to
+			// click the save button.
+			if (checkedForUpdates)
 			{
-				installed = true;
-				installButton.Text = "Uninstall loader";
-				using (MD5 md5 = MD5.Create())
-				{
-					byte[] hash1 = md5.ComputeHash(File.ReadAllBytes(loaderdllpath));
-					byte[] hash2 = md5.ComputeHash(File.ReadAllBytes(datadllpath));
-
-					if (hash1.SequenceEqual(hash2))
-					{
-						return;
-					}
-				}
-
-				DialogResult result = MessageBox.Show(this, "Installed loader DLL differs from copy in mods folder."
-					+ "\n\nDo you want to overwrite the installed copy?", Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-
-				if (result == DialogResult.Yes)
-					File.Copy(loaderdllpath, datadllpath, true);
+				IniSerializer.Serialize(loaderini, loaderinipath);
 			}
 		}
 
@@ -98,24 +129,9 @@ namespace ManiaModManager
 			string itemId = fields.FirstOrDefault(x => x.StartsWith("gb_itemid", StringComparison.InvariantCultureIgnoreCase));
 			itemId = itemId.Substring(itemId.IndexOf(":") + 1);
 
-			var dummyInfo = new ModInfo();
+			GameBananaItem gbi = GameBananaItem.Load(itemType, long.Parse(itemId));
 
-			using (var client = new UpdaterWebClient())
-			{
-				var response = client.DownloadString(
-					string.Format("https://api.gamebanana.com/Core/Item/Data?itemtype={0}&itemid={1}&fields=name,authors",
-						itemType, itemId)
-				);
-
-				var array = JsonConvert.DeserializeObject<string[]>(response);
-				dummyInfo.Name = array[0];
-
-				var authors = JsonConvert.DeserializeObject<Dictionary<string, string[][]>>(array[1]);
-
-				// for every array of string[] in authors, select the first element of each array
-				var authorList = from i in (from x in authors select x.Value) from j in i select j[0];
-				dummyInfo.Author = string.Join(", ", authorList);
-			}
+			var dummyInfo = new ModInfo() { Name = gbi.Name, Author = gbi.OwnerName };
 
 			DialogResult result = MessageBox.Show(this, $"Do you want to install mod \"{dummyInfo.Name}\" by {dummyInfo.Author} from {new Uri(fields[0]).DnsSafeHost}?", "Mod Download", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
@@ -184,6 +200,28 @@ namespace ManiaModManager
 
 		private void MainForm_Shown(object sender, EventArgs e)
 		{
+			if (File.Exists(datadllpath))
+			{
+				installed = true;
+				installButton.Text = "Uninstall loader";
+				using (MD5 md5 = MD5.Create())
+				{
+					byte[] hash1 = md5.ComputeHash(File.ReadAllBytes(loaderdllpath));
+					byte[] hash2 = md5.ComputeHash(File.ReadAllBytes(datadllpath));
+
+					if (hash1.SequenceEqual(hash2))
+					{
+						return;
+					}
+				}
+
+				DialogResult result = MessageBox.Show(this, "Installed loader DLL differs from copy in mods folder."
+					+ "\n\nDo you want to overwrite the installed copy?", Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+				if (result == DialogResult.Yes)
+					File.Copy(loaderdllpath, datadllpath, true);
+			}
+
 			List<string> uris = Program.UriQueue.GetUris();
 
 			foreach (string str in uris)
@@ -209,14 +247,16 @@ namespace ManiaModManager
 
 		private void LoadModList()
 		{
+			modTopButton.Enabled = modUpButton.Enabled = modDownButton.Enabled = modBottomButton.Enabled = configureModButton.Enabled = false;
+			modDescription.Text = "Description: No mod selected.";
 			modListView.Items.Clear();
-			mods = new Dictionary<string, ModInfo>();
+			mods = new Dictionary<string, ManiaModInfo>();
 			codes = new List<Code>(mainCodes.Codes);
 			string modDir = Path.Combine(Environment.CurrentDirectory, "mods");
 
-			foreach (string filename in ModInfo.GetModFiles(new DirectoryInfo(modDir)))
+			foreach (string filename in ManiaModInfo.GetModFiles(new DirectoryInfo(modDir)))
 			{
-				mods.Add(Path.GetDirectoryName(filename).Substring(modDir.Length + 1), IniSerializer.Deserialize<ModInfo>(filename));
+				mods.Add((Path.GetDirectoryName(filename) ?? string.Empty).Substring(modDir.Length + 1), IniSerializer.Deserialize<ManiaModInfo>(filename));
 			}
 
 			modListView.BeginUpdate();
@@ -225,7 +265,7 @@ namespace ManiaModManager
 			{
 				if (mods.ContainsKey(mod))
 				{
-					ModInfo inf = mods[mod];
+					ManiaModInfo inf = mods[mod];
 					suppressEvent = true;
 					modListView.Items.Add(new ListViewItem(new[] { inf.Name, inf.Author, inf.Version }) { Checked = true, Tag = mod });
 					suppressEvent = false;
@@ -240,7 +280,7 @@ namespace ManiaModManager
 				}
 			}
 
-			foreach (KeyValuePair<string, ModInfo> inf in mods)
+			foreach (KeyValuePair<string, ManiaModInfo> inf in mods.OrderBy(x => x.Value.Name))
 			{
 				if (!loaderini.Mods.Contains(inf.Key))
 					modListView.Items.Add(new ListViewItem(new[] { inf.Value.Name, inf.Value.Author, inf.Value.Version }) { Tag = inf.Key });
@@ -261,25 +301,353 @@ namespace ManiaModManager
 			codesCheckedListBox.EndUpdate();
 		}
 
+		private bool CheckForUpdates(bool force = false)
+		{
+			if (!force && !loaderini.UpdateCheck)
+			{
+				return false;
+			}
+
+			if (!force && !UpdateTimeElapsed(loaderini.UpdateUnit, loaderini.UpdateFrequency, DateTime.FromFileTimeUtc(loaderini.UpdateTime)))
+			{
+				return false;
+			}
+
+			checkedForUpdates = true;
+			loaderini.UpdateTime = DateTime.UtcNow.ToFileTimeUtc();
+
+			if (!File.Exists("maniamlver.txt"))
+			{
+				return false;
+			}
+
+			using (var wc = new WebClient())
+			{
+				try
+				{
+					string msg = wc.DownloadString("http://mm.reimuhakurei.net/toolchangelog.php?tool=maniaml&rev=" + File.ReadAllText("maniamlver.txt"));
+
+					if (msg.Length > 0)
+					{
+						using (var dlg = new UpdateMessageDialog("Mania", msg.Replace("\n", "\r\n")))
+						{
+							if (dlg.ShowDialog(this) == DialogResult.Yes)
+							{
+								Process.Start("http://mm.reimuhakurei.net/misc/ManiaModLoader.7z");
+								Close();
+								return true;
+							}
+						}
+					}
+				}
+				catch
+				{
+					MessageBox.Show(this, "Unable to retrieve update information.", "Mania Mod Manager");
+				}
+			}
+
+			return false;
+		}
+
+		private void InitializeWorker()
+		{
+			if (updateChecker != null)
+			{
+				return;
+			}
+
+			updateChecker = new BackgroundWorker { WorkerSupportsCancellation = true };
+			updateChecker.DoWork += UpdateChecker_DoWork;
+			updateChecker.RunWorkerCompleted += UpdateChecker_RunWorkerCompleted;
+			updateChecker.RunWorkerCompleted += UpdateChecker_EnableControls;
+		}
+
+		private void UpdateChecker_EnableControls(object sender, RunWorkerCompletedEventArgs runWorkerCompletedEventArgs)
+		{
+			buttonCheckForUpdates.Enabled = true;
+			checkForUpdatesToolStripMenuItem.Enabled = true;
+			verifyToolStripMenuItem.Enabled = true;
+			forceUpdateToolStripMenuItem.Enabled = true;
+			uninstallToolStripMenuItem.Enabled = true;
+			developerToolStripMenuItem.Enabled = true;
+		}
+
+		private void CheckForModUpdates(bool force = false)
+		{
+			if (!force && !loaderini.ModUpdateCheck)
+			{
+				return;
+			}
+
+			InitializeWorker();
+
+			if (!force && !UpdateTimeElapsed(loaderini.UpdateUnit, loaderini.UpdateFrequency, DateTime.FromFileTimeUtc(loaderini.ModUpdateTime)))
+			{
+				return;
+			}
+
+			checkedForUpdates = true;
+			loaderini.ModUpdateTime = DateTime.UtcNow.ToFileTimeUtc();
+			updateChecker.RunWorkerAsync(mods.Select(x => new KeyValuePair<string, ModInfo>(x.Key, x.Value)).ToList());
+			buttonCheckForUpdates.Enabled = false;
+		}
+
+		private void UpdateChecker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+		{
+			if (modUpdater.ForceUpdate)
+			{
+				updateChecker?.Dispose();
+				updateChecker = null;
+				modUpdater.ForceUpdate = false;
+				modUpdater.Clear();
+			}
+
+			if (e.Cancelled)
+			{
+				return;
+			}
+
+			if (!(e.Result is Tuple<List<ModDownload>, List<string>> data))
+			{
+				return;
+			}
+
+			List<string> errors = data.Item2;
+			if (errors.Count != 0)
+			{
+				MessageBox.Show(this, "The following errors occurred while checking for updates:\n\n" + string.Join("\n", errors),
+					"Update Errors", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			}
+
+			bool manual = manualModUpdate;
+			manualModUpdate = false;
+
+			List<ModDownload> updates = data.Item1;
+			if (updates.Count == 0)
+			{
+				if (manual)
+				{
+					MessageBox.Show(this, "Mods are up to date.",
+						"No Updates", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+				return;
+			}
+
+			using (var dialog = new ModUpdatesDialog(updates))
+			{
+				if (dialog.ShowDialog(this) != DialogResult.OK)
+				{
+					return;
+				}
+
+				updates = dialog.SelectedMods;
+			}
+
+			if (updates.Count == 0)
+			{
+				return;
+			}
+
+			DialogResult result;
+			string updatePath = Path.Combine("mods", ".updates");
+
+			do
+			{
+				try
+				{
+					result = DialogResult.Cancel;
+					if (!Directory.Exists(updatePath))
+					{
+						Directory.CreateDirectory(updatePath);
+					}
+				}
+				catch (Exception ex)
+				{
+					result = MessageBox.Show(this, "Failed to create temporary update directory:\n" + ex.Message
+						+ "\n\nWould you like to retry?", "Directory Creation Failed", MessageBoxButtons.RetryCancel);
+				}
+			} while (result == DialogResult.Retry);
+
+			using (var progress = new DownloadDialog(updates, updatePath))
+			{
+				progress.ShowDialog(this);
+			}
+
+			do
+			{
+				try
+				{
+					result = DialogResult.Cancel;
+					Directory.Delete(updatePath, true);
+				}
+				catch (Exception ex)
+				{
+					result = MessageBox.Show(this, "Failed to remove temporary update directory:\n" + ex.Message
+						+ "\n\nWould you like to retry? You can remove the directory manually later.",
+						"Directory Deletion Failed", MessageBoxButtons.RetryCancel);
+				}
+			} while (result == DialogResult.Retry);
+
+			LoadModList();
+		}
+
+		private void UpdateChecker_DoWork(object sender, DoWorkEventArgs e)
+		{
+			if (!(sender is BackgroundWorker worker))
+			{
+				throw new Exception("what");
+			}
+
+			Invoke(new Action(() =>
+			{
+				buttonCheckForUpdates.Enabled = false;
+				checkForUpdatesToolStripMenuItem.Enabled = false;
+				verifyToolStripMenuItem.Enabled = false;
+				forceUpdateToolStripMenuItem.Enabled = false;
+				uninstallToolStripMenuItem.Enabled = false;
+				developerToolStripMenuItem.Enabled = false;
+			}));
+
+			var updatableMods = e.Argument as List<KeyValuePair<string, ModInfo>>;
+			List<ModDownload> updates = null;
+			List<string> errors = null;
+
+			var tokenSource = new CancellationTokenSource();
+			CancellationToken token = tokenSource.Token;
+
+			using (var task = new Task(() => modUpdater.GetModUpdates(updatableMods, out updates, out errors, token), token))
+			{
+				task.Start();
+
+				while (!task.IsCompleted && !task.IsCanceled)
+				{
+					Application.DoEvents();
+
+					if (worker.CancellationPending)
+					{
+						tokenSource.Cancel();
+					}
+				}
+
+				task.Wait(token);
+			}
+
+			e.Result = new Tuple<List<ModDownload>, List<string>>(updates, errors);
+		}
+
+		// TODO: merge with ^
+		private void UpdateChecker_DoWorkForced(object sender, DoWorkEventArgs e)
+		{
+			if (!(sender is BackgroundWorker worker))
+			{
+				throw new Exception("what");
+			}
+
+			if (!(e.Argument is List<Tuple<string, ModInfo, List<ModManifestDiff>>> updatableMods) || updatableMods.Count == 0)
+			{
+				return;
+			}
+
+			var updates = new List<ModDownload>();
+			var errors = new List<string>();
+
+			using (var client = new UpdaterWebClient())
+			{
+				foreach (Tuple<string, ModInfo, List<ModManifestDiff>> info in updatableMods)
+				{
+					if (worker.CancellationPending)
+					{
+						e.Cancel = true;
+						break;
+					}
+
+					ModInfo mod = info.Item2;
+					if (!string.IsNullOrEmpty(mod.GitHubRepo))
+					{
+						if (string.IsNullOrEmpty(mod.GitHubAsset))
+						{
+							errors.Add($"[{ mod.Name }] GitHubRepo specified, but GitHubAsset is missing.");
+							continue;
+						}
+
+						ModDownload d = modUpdater.GetGitHubReleases(mod, info.Item1, client, errors);
+						if (d != null)
+						{
+							updates.Add(d);
+						}
+					}
+					else if (!string.IsNullOrEmpty(mod.GameBananaItemType) && mod.GameBananaItemId.HasValue)
+					{
+						ModDownload d = modUpdater.GetGameBananaReleases(mod, info.Item1, errors);
+						if (d != null)
+						{
+							updates.Add(d);
+						}
+					}
+					else if (!string.IsNullOrEmpty(mod.UpdateUrl))
+					{
+						List<ModManifest> localManifest = info.Item3
+							.Where(x => x.State == ModManifestState.Unchanged)
+							.Select(x => x.Current).ToList();
+
+						ModDownload d = modUpdater.CheckModularVersion(mod, info.Item1, localManifest, client, errors);
+						if (d != null)
+						{
+							updates.Add(d);
+						}
+					}
+				}
+			}
+
+			e.Result = new Tuple<List<ModDownload>, List<string>>(updates, errors);
+		}
+
 		private void modListView_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			int count = modListView.SelectedIndices.Count;
 			if (count == 0)
 			{
-				modUpButton.Enabled = modDownButton.Enabled = false;
+				modTopButton.Enabled = modUpButton.Enabled = modDownButton.Enabled = modBottomButton.Enabled = configureModButton.Enabled = false;
 				modDescription.Text = "Description: No mod selected.";
 			}
 			else if (count == 1)
 			{
 				modDescription.Text = "Description: " + mods[(string)modListView.SelectedItems[0].Tag].Description;
+				modTopButton.Enabled = modListView.SelectedIndices[0] != 0;
 				modUpButton.Enabled = modListView.SelectedIndices[0] > 0;
 				modDownButton.Enabled = modListView.SelectedIndices[0] < modListView.Items.Count - 1;
+				modBottomButton.Enabled = modListView.SelectedIndices[0] != modListView.Items.Count - 1;
+				configureModButton.Enabled = File.Exists(Path.Combine("mods", (string)modListView.SelectedItems[0].Tag, "configschema.xml"));
 			}
 			else if (count > 1)
 			{
 				modDescription.Text = "Description: Multiple mods selected.";
-				modUpButton.Enabled = modDownButton.Enabled = true;
+				modTopButton.Enabled = modUpButton.Enabled = modDownButton.Enabled = modBottomButton.Enabled = true;
+				configureModButton.Enabled = false;
 			}
+		}
+
+		private void modTopButton_Click(object sender, EventArgs e)
+		{
+			if (modListView.SelectedItems.Count < 1)
+				return;
+
+			modListView.BeginUpdate();
+
+			for (int i = 0; i < modListView.SelectedItems.Count; i++)
+			{
+				int index = modListView.SelectedItems[i].Index;
+
+				if (index > 0)
+				{
+					ListViewItem item = modListView.SelectedItems[i];
+					modListView.Items.Remove(item);
+					modListView.Items.Insert(i, item);
+				}
+			}
+
+			modListView.SelectedItems[0].EnsureVisible();
+			modListView.EndUpdate();
 		}
 
 		private void modUpButton_Click(object sender, EventArgs e)
@@ -328,6 +696,70 @@ namespace ManiaModManager
 			modListView.EndUpdate();
 		}
 
+		private void modBottomButton_Click(object sender, EventArgs e)
+		{
+			if (modListView.SelectedItems.Count < 1)
+				return;
+
+			modListView.BeginUpdate();
+
+			for (int i = modListView.SelectedItems.Count - 1; i >= 0; i--)
+			{
+				int index = modListView.SelectedItems[i].Index;
+
+				if (index != modListView.Items.Count - 1)
+				{
+					ListViewItem item = modListView.SelectedItems[i];
+					modListView.Items.Remove(item);
+					modListView.Items.Insert(modListView.Items.Count, item);
+				}
+			}
+
+			modListView.SelectedItems[modListView.SelectedItems.Count - 1].EnsureVisible();
+			modListView.EndUpdate();
+		}
+
+		static readonly string moddropname = "Mod" + Process.GetCurrentProcess().Id;
+		private void modListView_ItemDrag(object sender, ItemDragEventArgs e)
+		{
+			modListView.DoDragDrop(new DataObject(moddropname, modListView.SelectedItems.Cast<ListViewItem>().ToArray()), DragDropEffects.Move | DragDropEffects.Scroll);
+		}
+
+		private void modListView_DragEnter(object sender, DragEventArgs e)
+		{
+			if (e.Data.GetDataPresent(moddropname))
+				e.Effect = DragDropEffects.Move | DragDropEffects.Scroll;
+			else
+				e.Effect = DragDropEffects.None;
+		}
+
+		private void modListView_DragOver(object sender, DragEventArgs e)
+		{
+			if (e.Data.GetDataPresent(moddropname))
+				e.Effect = DragDropEffects.Move | DragDropEffects.Scroll;
+			else
+				e.Effect = DragDropEffects.None;
+		}
+
+		private void modListView_DragDrop(object sender, DragEventArgs e)
+		{
+			if (e.Data.GetDataPresent(moddropname))
+			{
+				Point clientPoint = modListView.PointToClient(new Point(e.X, e.Y));
+				ListViewItem[] items = (ListViewItem[])e.Data.GetData(moddropname);
+				int ind = modListView.GetItemAt(clientPoint.X, clientPoint.Y).Index;
+				foreach (ListViewItem item in items)
+					if (ind > item.Index)
+						ind++;
+				modListView.BeginUpdate();
+				foreach (ListViewItem item in items)
+					modListView.Items.Insert(ind++, (ListViewItem)item.Clone());
+				foreach (ListViewItem item in items)
+					modListView.Items.Remove(item);
+				modListView.EndUpdate();
+			}
+		}
+
 		private void Save()
 		{
 			loaderini.Mods.Clear();
@@ -341,6 +773,10 @@ namespace ManiaModManager
 			loaderini.StartingScene = startingScene.SelectedIndex;
 			loaderini.SpeedShoesTempoChange = speedShoesTempoCheckBox.Checked;
 			loaderini.BlueSpheresTempoChange = blueSpheresTempoCheckBox.Checked;
+			loaderini.UpdateCheck = checkUpdateStartup.Checked;
+			loaderini.ModUpdateCheck = checkUpdateModsStartup.Checked;
+			loaderini.UpdateUnit = (UpdateUnit)comboUpdateFrequency.SelectedIndex;
+			loaderini.UpdateFrequency = (int)numericUpdateFrequency.Value;
 
 			IniSerializer.Serialize(loaderini, loaderinipath);
 
@@ -355,98 +791,8 @@ namespace ManiaModManager
 					selectedCodes.Add(item);
 			}
 
-			using (FileStream fs = File.Create(patchdatpath))
-			using (BinaryWriter bw = new BinaryWriter(fs, System.Text.Encoding.ASCII))
-			{
-				bw.Write(new[] { 'c', 'o', 'd', 'e', 'v', '5' });
-				bw.Write(selectedPatches.Count);
-				foreach (Code item in selectedPatches)
-				{
-					if (item.IsReg)
-						bw.Write((byte)CodeType.newregs);
-					WriteCodes(item.Lines, bw);
-				}
-				bw.Write(byte.MaxValue);
-			}
-			using (FileStream fs = File.Create(codedatpath))
-			using (BinaryWriter bw = new BinaryWriter(fs, System.Text.Encoding.ASCII))
-			{
-				bw.Write(new[] { 'c', 'o', 'd', 'e', 'v', '5' });
-				bw.Write(selectedCodes.Count);
-				foreach (Code item in selectedCodes)
-				{
-					if (item.IsReg)
-						bw.Write((byte)CodeType.newregs);
-					WriteCodes(item.Lines, bw);
-				}
-				bw.Write(byte.MaxValue);
-			}
-		}
-
-		private void WriteCodes(IEnumerable<CodeLine> codeList, BinaryWriter writer)
-		{
-			foreach (CodeLine line in codeList)
-			{
-				writer.Write((byte)line.Type);
-				uint address;
-				if (line.Address.StartsWith("r"))
-					address = uint.Parse(line.Address.Substring(1), System.Globalization.NumberStyles.None, System.Globalization.NumberFormatInfo.InvariantInfo);
-				else
-					address = uint.Parse(line.Address, System.Globalization.NumberStyles.HexNumber);
-				if (line.Pointer)
-					address |= 0x80000000u;
-				writer.Write(address);
-				if (line.Pointer)
-					if (line.Offsets != null)
-					{
-						writer.Write((byte)line.Offsets.Count);
-						foreach (int off in line.Offsets)
-							writer.Write(off);
-					}
-					else
-						writer.Write((byte)0);
-				if (line.Type == CodeType.ifkbkey)
-					writer.Write((int)(Keys)Enum.Parse(typeof(Keys), line.Value));
-				else
-					switch (line.ValueType)
-					{
-						case ValueType.@decimal:
-							switch (line.Type)
-							{
-								case CodeType.writefloat:
-								case CodeType.addfloat:
-								case CodeType.subfloat:
-								case CodeType.mulfloat:
-								case CodeType.divfloat:
-								case CodeType.ifeqfloat:
-								case CodeType.ifnefloat:
-								case CodeType.ifltfloat:
-								case CodeType.iflteqfloat:
-								case CodeType.ifgtfloat:
-								case CodeType.ifgteqfloat:
-									writer.Write(float.Parse(line.Value, System.Globalization.NumberStyles.Float, System.Globalization.NumberFormatInfo.InvariantInfo));
-									break;
-								default:
-									writer.Write(unchecked((int)long.Parse(line.Value, System.Globalization.NumberStyles.Integer, System.Globalization.NumberFormatInfo.InvariantInfo)));
-									break;
-							}
-							break;
-						case ValueType.hex:
-							writer.Write(uint.Parse(line.Value, System.Globalization.NumberStyles.HexNumber, System.Globalization.NumberFormatInfo.InvariantInfo));
-							break;
-					}
-				writer.Write(line.RepeatCount ?? 1);
-				if (line.IsIf)
-				{
-					WriteCodes(line.TrueLines, writer);
-					if (line.FalseLines.Count > 0)
-					{
-						writer.Write((byte)CodeType.@else);
-						WriteCodes(line.FalseLines, writer);
-					}
-					writer.Write((byte)CodeType.endif);
-				}
-			}
+			CodeList.WriteDatFile(patchdatpath, selectedPatches);
+			CodeList.WriteDatFile(codedatpath, selectedCodes);
 		}
 
 		static readonly string[] scenelist =
@@ -546,6 +892,27 @@ namespace ManiaModManager
 
 		private void saveAndPlayButton_Click(object sender, EventArgs e)
 		{
+			if (updateChecker?.IsBusy == true)
+			{
+				var result = MessageBox.Show(this, "Mods are still being checked for updates. Continue anyway?",
+					"Busy", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+				if (result == DialogResult.No)
+				{
+					return;
+				}
+
+				Enabled = false;
+
+				updateChecker.CancelAsync();
+				while (updateChecker.IsBusy)
+				{
+					Application.DoEvents();
+				}
+
+				Enabled = true;
+			}
+
 			Save();
 			System.Text.StringBuilder sb = new System.Text.StringBuilder();
 			if (enableDebugConsole.Checked)
@@ -581,6 +948,21 @@ namespace ManiaModManager
 		private void buttonRefreshModList_Click(object sender, EventArgs e)
 		{
 			LoadModList();
+		}
+
+		private void configureModButton_Click(object sender, EventArgs e)
+		{
+			using (ModConfigDialog dlg = new ModConfigDialog(Path.Combine("mods", (string)modListView.SelectedItems[0].Tag), modListView.SelectedItems[0].Text))
+				dlg.ShowDialog(this);
+		}
+
+		private void buttonNewMod_Click(object sender, EventArgs e)
+		{
+			using (var ModDialog = new NewModDialog())
+			{
+				if (ModDialog.ShowDialog() == DialogResult.OK)
+					LoadModList();
+			}
 		}
 
 		private void codesCheckedListBox_ItemCheck(object sender, ItemCheckEventArgs e)
@@ -648,6 +1030,239 @@ namespace ManiaModManager
 			{
 				Process.Start(Path.Combine("mods", (string)item.Tag));
 			}
+		}
+
+		private void uninstallToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			DialogResult result = MessageBox.Show(this, "This will uninstall all selected mods."
+				+ "\n\nAre you sure you wish to continue?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+			if (result != DialogResult.Yes)
+			{
+				return;
+			}
+
+			result = MessageBox.Show(this, "Would you like to keep mod user data where possible? (Save files, config files, etc)",
+				"User Data", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+
+			if (result == DialogResult.Cancel)
+			{
+				return;
+			}
+
+			foreach (ListViewItem item in modListView.SelectedItems)
+			{
+				var dir = (string)item.Tag;
+				var modDir = Path.Combine("mods", dir);
+				var manpath = Path.Combine(modDir, "mod.manifest");
+
+				try
+				{
+					if (result == DialogResult.Yes && File.Exists(manpath))
+					{
+						List<ModManifest> manifest = ModManifest.FromFile(manpath);
+						foreach (var entry in manifest)
+						{
+							var path = Path.Combine(modDir, entry.FilePath);
+							if (File.Exists(path))
+							{
+								File.Delete(path);
+							}
+						}
+
+						File.Delete(manpath);
+						var version = Path.Combine(modDir, "mod.version");
+						if (File.Exists(version))
+						{
+							File.Delete(version);
+						}
+					}
+					else
+					{
+						if (result == DialogResult.Yes)
+						{
+							var retain = MessageBox.Show(this, $"The mod \"{ mods[dir].Name }\" (\"mods\\{ dir }\") does not have a manifest, so mod user data cannot be retained."
+								+ " Do you want to uninstall it anyway?", "Cannot Retain User Data", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+							if (retain == DialogResult.No)
+							{
+								continue;
+							}
+						}
+
+						Directory.Delete(modDir, true);
+					}
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show(this, $"Failed to uninstall mod \"{ mods[dir].Name }\" from \"{ dir }\": { ex.Message }", "Failed",
+						MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			}
+
+			LoadModList();
+		}
+
+		private bool displayedManifestWarning;
+
+		private void generateManifestToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			if (!displayedManifestWarning)
+			{
+				DialogResult result = MessageBox.Show(this, Properties.Resources.GenerateManifestWarning,
+					"Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+				if (result != DialogResult.Yes)
+				{
+					return;
+				}
+
+				displayedManifestWarning = true;
+			}
+
+			foreach (ListViewItem item in modListView.SelectedItems)
+			{
+				var modPath = Path.Combine("mods", (string)item.Tag);
+				var manifestPath = Path.Combine(modPath, "mod.manifest");
+
+				List<ModManifest> manifest;
+				List<ModManifestDiff> diff;
+
+				using (var progress = new ManifestDialog(modPath, $"Generating manifest: {(string)item.Tag}", true))
+				{
+					progress.SetTask("Generating file index...");
+					if (progress.ShowDialog(this) == DialogResult.Cancel)
+					{
+						continue;
+					}
+
+					diff = progress.Diff;
+				}
+
+				if (diff == null)
+				{
+					continue;
+				}
+
+				if (diff.Count(x => x.State != ModManifestState.Unchanged) <= 0)
+				{
+					continue;
+				}
+
+				using (var dialog = new ManifestDiffDialog(diff))
+				{
+					if (dialog.ShowDialog(this) == DialogResult.Cancel)
+					{
+						continue;
+					}
+
+					manifest = dialog.MakeNewManifest();
+				}
+
+				ModManifest.ToFile(manifest, manifestPath);
+			}
+		}
+
+		private void UpdateSelectedMods()
+		{
+			InitializeWorker();
+			manualModUpdate = true;
+			updateChecker?.RunWorkerAsync(modListView.SelectedItems.Cast<ListViewItem>()
+				.Select(x => (string)x.Tag)
+				.Select(x => new KeyValuePair<string, ModInfo>(x, mods[x]))
+				.ToList());
+		}
+
+		private void checkForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			UpdateSelectedMods();
+		}
+
+		private void forceUpdateToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			var result = MessageBox.Show(this, "This will force all selected mods to be completely re-downloaded."
+				+ " Are you sure you want to continue?",
+				"Force Update", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+			if (result != DialogResult.Yes)
+			{
+				return;
+			}
+
+			modUpdater.ForceUpdate = true;
+			UpdateSelectedMods();
+		}
+
+		private void verifyToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			List<Tuple<string, ModInfo>> items = modListView.SelectedItems.Cast<ListViewItem>()
+				.Select(x => (string)x.Tag)
+				.Where(x => File.Exists(Path.Combine("mods", x, "mod.manifest")))
+				.Select(x => new Tuple<string, ModInfo>(x, mods[x]))
+				.ToList();
+
+			if (items.Count < 1)
+			{
+				MessageBox.Show(this, "None of the selected mods have manifests, so they cannot be verified.",
+					"Missing mod.manifest", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+
+			using (var progress = new VerifyModDialog(items))
+			{
+				var result = progress.ShowDialog(this);
+				if (result == DialogResult.Cancel)
+				{
+					return;
+				}
+
+				List<Tuple<string, ModInfo, List<ModManifestDiff>>> failed = progress.Failed;
+				if (failed.Count < 1)
+				{
+					MessageBox.Show(this, "All selected mods passed verification.", "Integrity Pass",
+						MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+				else
+				{
+					result = MessageBox.Show(this, "The following mods failed verification:\n"
+						+ string.Join("\n", failed.Select(x => $"{x.Item2.Name}: {x.Item3.Count(y => y.State != ModManifestState.Unchanged)} file(s)"))
+						+ "\n\nWould you like to attempt repairs?",
+						"Integrity Fail", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+					if (result != DialogResult.Yes)
+					{
+						return;
+					}
+
+					InitializeWorker();
+
+					updateChecker.DoWork -= UpdateChecker_DoWork;
+					updateChecker.DoWork += UpdateChecker_DoWorkForced;
+
+					updateChecker.RunWorkerAsync(failed);
+
+					modUpdater.ForceUpdate = true;
+					buttonCheckForUpdates.Enabled = false;
+				}
+			}
+		}
+
+		private void comboUpdateFrequency_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			numericUpdateFrequency.Enabled = comboUpdateFrequency.SelectedIndex > 0;
+		}
+
+		private void buttonCheckForUpdates_Click(object sender, EventArgs e)
+		{
+			buttonCheckForUpdates.Enabled = false;
+
+			if (CheckForUpdates(true))
+			{
+				return;
+			}
+
+			manualModUpdate = true;
+			CheckForModUpdates(true);
 		}
 
 		private void installURLHandlerButton_Click(object sender, EventArgs e)
