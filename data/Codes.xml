@@ -684,6 +684,14 @@
       <ValueType>hex</ValueType>
     </CodeLine>
   </Code>
+  <Code name="Skip Cutscenes" patch="true">
+    <CodeLine>
+      <Type>writenop</Type>
+      <Address>004554DD</Address>
+      <Value>2</Value>
+      <ValueType>decimal</ValueType>
+    </CodeLine>
+  </Code>
   <Code name="Disable HUD" patch="true">
     <CodeLine>
       <Type>write8</Type>

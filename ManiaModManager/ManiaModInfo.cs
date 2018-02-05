@@ -10,8 +10,6 @@ namespace ManiaModManager
 	{
 		public bool BlueSpheresTempoChange { get; set; }
 		public bool SpeedShoesTempoChange { get; set; }
-		[IniCollection(IniCollectionMode.IndexOnly)]
-		public Dictionary<string,int> MusicLoops { get; set; }
 
 		public static new IEnumerable<string> GetModFiles(DirectoryInfo directoryInfo)
 		{
