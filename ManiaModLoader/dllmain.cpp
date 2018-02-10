@@ -182,8 +182,6 @@ static void __stdcall onTrackEnd(HSYNC handle, DWORD channel, DWORD data, void *
 		loopPoint = lastlooppoint;
 		musicbuf = lastmusicbuf;
 		lastmusicbuf = nullptr;
-		BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, 0);
-		stru_D79CA0[oldsong].volume = 0;
 		BASS_ChannelPlay(basschan, FALSE);
 		one_up = false;
 	}
