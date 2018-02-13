@@ -14,8 +14,6 @@ using System.Windows.Forms;
 using IniFile;
 using ModManagerCommon;
 using ModManagerCommon.Forms;
-using Newtonsoft.Json;
-using ValueType = ModManagerCommon.ValueType;
 
 namespace ManiaModManager
 {
@@ -28,6 +26,7 @@ namespace ManiaModManager
 
 		private bool checkedForUpdates;
 
+		const string updatePath = "mods/.updates";
 		const string datadllpath = "d3d9.dll";
 		const string loaderinipath = "mods/ManiaModLoader.ini";
 		const string loaderdllpath = "mods/ManiaModLoader.dll";
@@ -85,9 +84,6 @@ namespace ManiaModManager
 			SetDoubleBuffered(modListView, true);
 			loaderini = File.Exists(loaderinipath) ? IniSerializer.Deserialize<ManiaLoaderInfo>(loaderinipath) : new ManiaLoaderInfo();
 
-			if (CheckForUpdates())
-				return;
-
 			try { mainCodes = CodeList.Load(codexmlpath); }
 			catch { mainCodes = new CodeList() { Codes = new List<Code>() }; }
 
@@ -142,8 +138,6 @@ namespace ManiaModManager
 				return;
 			}
 
-			string updatePath = Path.Combine("mods", ".updates");
-
 			#region create update folder
 			do
 			{
@@ -177,7 +171,7 @@ namespace ManiaModManager
 				new ModDownload(dummyInfo, dummyPath, fields[0], null, 0)
 			};
 
-			using (var progress = new DownloadDialog(updates, updatePath))
+			using (var progress = new ModDownloadDialog(updates, updatePath))
 			{
 				progress.ShowDialog(this);
 			}
@@ -202,6 +196,9 @@ namespace ManiaModManager
 
 		private void MainForm_Shown(object sender, EventArgs e)
 		{
+			if (CheckForUpdates())
+				return;
+
 			if (File.Exists(datadllpath))
 			{
 				installed = true;
@@ -333,9 +330,30 @@ namespace ManiaModManager
 						{
 							if (dlg.ShowDialog(this) == DialogResult.Yes)
 							{
-								Process.Start("http://mm.reimuhakurei.net/misc/ManiaModLoader.7z");
-								Close();
-								return true;
+								DialogResult result = DialogResult.OK;
+								do
+								{
+									try
+									{
+										if (!Directory.Exists(updatePath))
+										{
+											Directory.CreateDirectory(updatePath);
+										}
+									}
+									catch (Exception ex)
+									{
+										result = MessageBox.Show(this, "Failed to create temporary update directory:\n" + ex.Message
+																	   + "\n\nWould you like to retry?", "Directory Creation Failed", MessageBoxButtons.RetryCancel);
+										if (result == DialogResult.Cancel) return false;
+									}
+								} while (result == DialogResult.Retry);
+
+								using (var dlg2 = new LoaderDownloadDialog("http://mm.reimuhakurei.net/sa2mods/SA2ModLoader.7z", updatePath))
+									if (dlg2.ShowDialog(this) == DialogResult.OK)
+									{
+										Close();
+										return true;
+									}
 							}
 						}
 					}
@@ -449,7 +467,6 @@ namespace ManiaModManager
 			}
 
 			DialogResult result;
-			string updatePath = Path.Combine("mods", ".updates");
 
 			do
 			{
@@ -468,7 +485,7 @@ namespace ManiaModManager
 				}
 			} while (result == DialogResult.Retry);
 
-			using (var progress = new DownloadDialog(updates, updatePath))
+			using (var progress = new ModDownloadDialog(updates, updatePath))
 			{
 				progress.ShowDialog(this);
 			}
