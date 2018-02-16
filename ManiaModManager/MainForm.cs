@@ -32,6 +32,7 @@ namespace ManiaModManager
 		const string loaderdllpath = "mods/ManiaModLoader.dll";
 		ManiaLoaderInfo loaderini;
 		Dictionary<string, ManiaModInfo> mods;
+		const string codelstpath = "mods/Codes.lst";
 		const string codexmlpath = "mods/Codes.xml";
 		const string codedatpath = "mods/Codes.dat";
 		const string patchdatpath = "mods/Patches.dat";
@@ -84,8 +85,20 @@ namespace ManiaModManager
 			SetDoubleBuffered(modListView, true);
 			loaderini = File.Exists(loaderinipath) ? IniSerializer.Deserialize<ManiaLoaderInfo>(loaderinipath) : new ManiaLoaderInfo();
 
-			try { mainCodes = CodeList.Load(codexmlpath); }
-			catch { mainCodes = new CodeList() { Codes = new List<Code>() }; }
+			try
+			{
+				if (File.Exists(codelstpath))
+					mainCodes = CodeList.Load(codelstpath);
+				else if (File.Exists(codexmlpath))
+					mainCodes = CodeList.Load(codexmlpath);
+				else
+					mainCodes = new CodeList();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(this, $"Error loading code list: {ex.Message}", "Mania Mod Loader", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				mainCodes = new CodeList();
+			}
 
 			LoadModList();
 
