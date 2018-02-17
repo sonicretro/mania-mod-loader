@@ -361,7 +361,7 @@ namespace ManiaModManager
 									}
 								} while (result == DialogResult.Retry);
 
-								using (var dlg2 = new LoaderDownloadDialog("http://mm.reimuhakurei.net/sa2mods/SA2ModLoader.7z", updatePath))
+								using (var dlg2 = new LoaderDownloadDialog("http://mm.reimuhakurei.net/misc/ManiaModLoader.7z", updatePath))
 									if (dlg2.ShowDialog(this) == DialogResult.OK)
 									{
 										Close();
