@@ -110,16 +110,6 @@ namespace ManiaModManager
 			checkUpdateModsStartup.Checked = loaderini.ModUpdateCheck;
 			comboUpdateFrequency.SelectedIndex = (int)loaderini.UpdateUnit;
 			numericUpdateFrequency.Value = loaderini.UpdateFrequency;
-
-			CheckForModUpdates();
-
-			// If we've checked for updates, save the modified
-			// last update times without requiring the user to
-			// click the save button.
-			if (checkedForUpdates)
-			{
-				IniSerializer.Serialize(loaderini, loaderinipath);
-			}
 		}
 
 		private void HandleUri(string uri)
@@ -240,6 +230,16 @@ namespace ManiaModManager
 			}
 
 			Program.UriQueue.UriEnqueued += UriQueueOnUriEnqueued;
+
+			CheckForModUpdates();
+
+			// If we've checked for updates, save the modified
+			// last update times without requiring the user to
+			// click the save button.
+			if (checkedForUpdates)
+			{
+				IniSerializer.Serialize(loaderini, loaderinipath);
+			}
 		}
 
 		private void UriQueueOnUriEnqueued(object sender, OnUriEnqueuedArgs args)
