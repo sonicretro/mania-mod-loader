@@ -378,6 +378,45 @@ static void __cdecl ProcessCodes()
 	MainGameLoop();
 }
 
+string savepath;
+void __cdecl API_LoadUserFile_r(const char *filename, void *buffer, unsigned int bufSize, void (__cdecl *a4)(int))
+{
+	PrintDebug("Attempting to load file: %s\n", filename);
+	string path = savepath + '\\' + filename;
+	if (IsFile(path))
+	{
+		FILE *f = fopen(path.c_str(), "rb");
+		fseek(f, 0, SEEK_END);
+		size_t size = ftell(f);
+		if (bufSize < size)
+			size = bufSize;
+		fseek(f, 0, SEEK_SET);
+		fread(buffer, 1, size, f);
+		fclose(f);
+	}
+	else
+		PrintDebug("Does not exist!\n");
+	if (a4)
+		a4(1);
+}
+
+void __cdecl API_SaveUserFile_r(const char *filename, void *buffer, unsigned int bufSize, void (__cdecl *a4)(int))
+{
+	PrintDebug("Attempting to save file: %s\n", filename);
+	if (!IsDirectory(savepath))
+		CreateDirectoryA(savepath.c_str(), nullptr);
+	string path = savepath + '\\' + filename;
+	FILE *f = fopen(path.c_str(), "wb");
+	if (!f)
+	{
+		a4(0);
+		return;
+	}
+	fwrite(buffer, 1, bufSize, f);
+	fclose(f);
+	a4(1);
+}
+
 static vector<wstring> split(const wstring &s, wchar_t delim)
 {
 	vector<wstring> elems;
@@ -579,12 +618,20 @@ void InitMods()
 			bluespheretempo = true;
 		if (enablevgmstream && modinfo->getBool("SpeedShoesTempoChange"))
 			speedshoestempo = true;
+		if (modinfo->getBool("RedirectSaveFile"))
+			savepath = mod_dirA + "\\savedata";
 	}
 
 	if (speedshoestempo)
 	{
 		WriteCall((void*)0x43DCE6, SpeedUpMusic);
 		WriteCall((void*)0x47EA16, SlowDownMusic);
+	}
+
+	if (!savepath.empty())
+	{
+		WriteJump((void*)0x377E6E0, API_LoadUserFile_r);
+		WriteJump((void*)0x377F730, API_SaveUserFile_r);
 	}
 
 	if (!errors.empty())
