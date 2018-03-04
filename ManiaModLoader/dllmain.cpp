@@ -249,7 +249,7 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int
 	strncat(buf, name, MAX_PATH);
 	string newname = fileMap.replaceFile(buf);
 	string ext = GetExtension(newname);
-	if (newname == buf)
+	if (ReadFromPack && newname == buf)
 	{
 		fileinfo fi;
 		if (LoadFile(buf, &fi) == 1)
