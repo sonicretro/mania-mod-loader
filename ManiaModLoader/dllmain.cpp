@@ -750,6 +750,7 @@ void InitMods()
 	sub_5BD0E0();
 }
 
+#pragma warning(suppress : 4838)
 static const char verchk[] = { 0xE8u, 0x44, 0x2C, 0xFFu, 0xFFu, 0xE8u, 0xEFu, 0x6E, 0xFDu, 0xFFu };
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
