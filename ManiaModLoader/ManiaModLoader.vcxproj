@@ -99,6 +99,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Direct3DHook.h" />
     <ClInclude Include="Events.h" />
     <ClInclude Include="FileMap.hpp" />
     <ClInclude Include="FileSystem.h" />
@@ -113,7 +114,7 @@
     <ClCompile Include="Events.cpp" />
     <ClCompile Include="FileMap.cpp" />
     <ClCompile Include="FileSystem.cpp" />
-    <ClCompile Include="ManiaModLoader.cpp" />
+    <ClCompile Include="Direct3DHook.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

@@ -17,6 +17,7 @@
 #include "Events.h"
 #include "Trampoline.h"
 #include "ManiaModLoader.h"
+#include "Direct3DHook.h"
 
 using std::ifstream;
 using std::string;
@@ -432,6 +433,7 @@ static vector<wstring> split(const wstring &s, wchar_t delim)
 VoidFunc(sub_5BD0E0, 0x5BD0E0);
 void InitMods()
 {
+	HookDirect3D();
 	FILE *f_ini = _wfopen(L"mods\\ManiaModLoader.ini", L"r");
 	if (!f_ini)
 	{
