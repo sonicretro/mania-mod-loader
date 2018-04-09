@@ -102,7 +102,6 @@
     <ClInclude Include="Direct3DHook.h" />
     <ClInclude Include="Events.h" />
     <ClInclude Include="FileMap.hpp" />
-    <ClInclude Include="FileSystem.h" />
     <ClInclude Include="include\ManiaModLoader.h" />
     <ClInclude Include="include\MemAccess.h" />
     <ClInclude Include="stdafx.h" />
@@ -113,7 +112,6 @@
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Events.cpp" />
     <ClCompile Include="FileMap.cpp" />
-    <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="Direct3DHook.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
