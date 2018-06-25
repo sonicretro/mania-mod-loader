@@ -201,6 +201,7 @@ int bluespheretime = -1;
 
 int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
 {
+	//PrintDebug("PlayMusicFile_BASS(\"%s\", %u, %d, %u, %d);\n", name, a2, a3, loopstart, a5);
 	if (stru_D79CA0[a2].playStatus == 3)
 		return -1;
 	string namestr = name;
@@ -210,13 +211,30 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int
 		loopstart = iter->second;
 	if (!_stricmp(name, "1up.ogg"))
 	{
-		one_up = true;
-		BASS_ChannelPause(basschan);
-		lastbasschan = basschan;
-		basschan = 0;
-		lastlooppoint = loopPoint;
-		lastmusicbuf = musicbuf;
-		musicbuf = nullptr;
+		if (one_up)
+		{
+			if (basschan != 0)
+			{
+				BASS_ChannelStop(basschan);
+				BASS_StreamFree(basschan);
+				basschan = 0;
+			}
+			if (musicbuf)
+			{
+				delete[] musicbuf;
+				musicbuf = nullptr;
+			}
+		}
+		else
+		{
+			one_up = true;
+			BASS_ChannelPause(basschan);
+			lastbasschan = basschan;
+			basschan = 0;
+			lastlooppoint = loopPoint;
+			lastmusicbuf = musicbuf;
+			musicbuf = nullptr;
+		}
 	}
 	else
 	{
