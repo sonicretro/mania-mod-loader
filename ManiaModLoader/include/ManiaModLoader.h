@@ -3,7 +3,7 @@
 #include "MemAccess.h"
 
 static const int ModLoaderVer = 1;
-static const int GameVer = 3;
+static const int GameVer = 4;
 
 struct PatchInfo
 {
@@ -55,11 +55,12 @@ enum ShieldTypes
 
 enum Characters
 {
-	Characters_None,
-	Characters_Sonic,
-	Characters_Tails,
-	Characters_AlsoSonic,
-	Characters_Knuckles
+	Characters_None		= 0b00000,
+	Characters_Sonic	= 0b00001,
+	Characters_Tails	= 0b00010,
+	Characters_Knuckles = 0b00100,
+	Characters_Mighty	= 0b01000,
+	Characters_Ray		= 0b10000
 };
 
 struct fileinfo
@@ -90,6 +91,7 @@ struct fileheader
 	char anonymous_8[3];
 };
 
+// TODO: Player structure has changed a little, This needs updating
 struct PlayerData
 {
 	char field_0[2];
@@ -154,28 +156,32 @@ struct PlayerData
 };
 
 // define function and variable pointers here
-DataPointer(int, ReadFromPack, 0x630C10);
-DataPointer(int, ConsoleEnabled, 0x6331A4);
-DataPointer(float, MusicVolume, 0x638CC4);
-DataPointer(PlayerData, Player1Data, 0xA4C6C0);
-DataPointer(PlayerData, Player2Data, 0xA4CB18);
-DataPointer(int, TimerCentiframes, 0xCCF6EC);
-DataPointer(int, DebugEnabled, 0xCCF708);
-DataPointer(int, UpdateTimer, 0xCCF710);
-DataPointer(char, GameMode, 0xCCF716);
-DataPointer(char, TimerCentiseconds, 0xCCF717);
-DataPointer(char, TimerSeconds, 0xCCF718);
-DataPointer(char, TimerMinutes, 0xCCF719);
+DataPointer(BYTE, ReadFromPack, 0x6F1804);
+DataPointer(BYTE, ConsoleEnabled, 0xD3CBFA);
 
-FunctionPointer(int, PrintDebug, (const char *fmt, ...), 0x401140);
-VoidFunc(InitPlayer, 0x47F560);
-FastcallFunctionPointer(int, Player_CheckGoSuper, (PlayerData *a1, int emeraldflags), 0x4832A0);
-VoidFunc(Sonic_JumpAbilities, 0x4835D0);
-VoidFunc(Tails_JumpAbilities, 0x483910);
-VoidFunc(Knuckles_JumpAbilities, 0x4839E0);
-VoidFunc(Sonic_CheckDoPeelOut, 0x483AD0);
-FastcallFunctionPointer(void, HashFilename, (char *filename, int *hash), 0x5A0030);
-FastcallFunctionPointer(int, LoadFile, (char *filename, fileinfo *info), 0x5A0760);
-VoidFunc(MainGameLoop, 0x5A1DC0);
-VoidFunc(IncrementTimer, 0x5A5290);
-VoidFunc(ERZSuperSonic_JumpAbilities, 0x19CFF00);
+DataPointer(float, MusicVolume, 0xE4805C);
+DataPointer(PlayerData, Player1Data, 0x85E9A0);
+DataPointer(PlayerData, Player2Data, 0x85EDF8);
+DataPointer(int, TimerCentiframes, 0xE4874D);
+DataPointer(int, DebugEnabled, 0xE48768);
+DataPointer(int, UpdateTimer, 0xE48770);
+DataPointer(char, GameMode, 0xE487787);
+DataPointer(char, TimerCentiseconds, 0xE48778);
+DataPointer(char, TimerSeconds, 0xE48779);
+DataPointer(char, TimerMinutes, 0xE4877A);
+
+FunctionPointer(int, PrintDebug, (const char *fmt, ...), 0x5C4300);//
+
+VoidFunc(InitPlayer, 0x4C33F0);
+FastcallFunctionPointer(int, Player_CheckGoSuper, (PlayerData *a1, int emeraldflags), 0x4C8280);
+VoidFunc(Sonic_JumpAbilities, 0x4C8630);
+VoidFunc(Tails_JumpAbilities, 0x4C8990);
+VoidFunc(Knuckles_JumpAbilities, 0x4C8A70);
+VoidFunc(Mighty_JumpAbilities, 0x4C8B70);
+VoidFunc(Ray_JumpAbilities, 0x4C8DF0);
+VoidFunc(Sonic_CheckDoPeelOut, 0x4C8FF0);
+VoidFunc(ERZSuperSonic_JumpAbilities, 0x4C2340);
+FastcallFunctionPointer(void, HashFilename, (char *filename, int *hash), 0x5CAE80);
+FastcallFunctionPointer(int, LoadFile, (char *filename, fileinfo *info), 0x5C4C20);
+VoidFunc(MainGameLoop, 0x5C7540);
+//VoidFunc(IncrementTimer, 0x5C74E0);
