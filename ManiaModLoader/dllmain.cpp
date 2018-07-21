@@ -772,6 +772,8 @@ void InitMods()
 
 #pragma warning(suppress : 4838)
 static const char verchk[] = { 0xE8u, 0x52, 0x58, 0xFEu, 0xFFu, 0xE8u, 0x4Du, 0xD3, 0xFEu, 0xFFu };
+static const char verchk_1422308210609141148[] = { 0xE8u, 0x72, 0x45, 0xC1u, 0x0E, 0xE8u, 0x4Du, 0xD3, 0xFEu, 0xFFu };
+//E8 72 45 C1 0E E8 4D
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
@@ -781,7 +783,12 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	{
 	case DLL_PROCESS_ATTACH:
 		if (memcmp(verchk, (const char *)0x005FD6C9, sizeof(verchk)) != 0)
-			MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
+		{
+			if (memcmp(verchk, (const char *)0x005FD6C9, sizeof(verchk_1422308210609141148)) != 0)
+				MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease update Sonic Mania on Steam.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
+			else
+				MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
+		}
 		else
 			WriteCall((void*)0x005FD6C9, InitMods);
 		break;
