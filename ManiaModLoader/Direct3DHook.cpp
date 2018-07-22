@@ -17,7 +17,7 @@ void HookDirect3D()
 	Direct3DCreate9Ptr = (decltype(Direct3DCreate9Ptr))GetProcAddress(hmod, "Direct3DCreate9");
 }
 
-extern "C" __declspec(dllexport) void *Direct3DCreate9(UINT SDKVersion)
+void *WINAPI Direct3DCreate9(UINT SDKVersion)
 {
 	if (!Direct3DCreate9Ptr) HookDirect3D();
 	return Direct3DCreate9Ptr(SDKVersion);
