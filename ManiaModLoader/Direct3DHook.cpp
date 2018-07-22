@@ -5,7 +5,7 @@
 #include <cstdio>
 #include "Direct3DHook.h"
 
-void *Direct3DCreate9Ptr;
+void *(WINAPI *Direct3DCreate9Ptr)(UINT SDKVersion);
 
 void HookDirect3D()
 {
@@ -14,16 +14,11 @@ void HookDirect3D()
 	wchar_t d3dpath[MAX_PATH];
 	_snwprintf(d3dpath, MAX_PATH, L"%s\\d3d9.dll", windir);
 	const HMODULE hmod = LoadLibrary(d3dpath);
-	Direct3DCreate9Ptr = GetProcAddress(hmod, "Direct3DCreate9");
+	Direct3DCreate9Ptr = (decltype(Direct3DCreate9Ptr))GetProcAddress(hmod, "Direct3DCreate9");
 }
 
-extern "C"
+extern "C" __declspec(dllexport) void *Direct3DCreate9(UINT SDKVersion)
 {
-	__declspec(dllexport) __declspec(naked) void Direct3DCreate9()
-	{
-		__asm
-		{
-			jmp Direct3DCreate9Ptr
-		}
-	}
+	if (!Direct3DCreate9Ptr) HookDirect3D();
+	return Direct3DCreate9Ptr(SDKVersion);
 }
