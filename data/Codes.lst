@@ -40,6 +40,39 @@ Patch "Enable Super With 1 Ring"
 write8 004C82FE 1
 write8 00453170 1
 
+Code "P1 Always Sonic"
+write8 p008324FC|4 1
+
+Code "P1 Always Tails"
+write8 p008324FC|4 2
+
+Code "P1 Always Knuckles"
+write8 p008324FC|4 4
+
+Code "P1 Always Mighty"
+write8 p008324FC|4 8
+
+Code "P1 Always Ray"
+write8 p008324FC|4 16
+
+Code "Disable P2 (Mania Mode)"
+write8 p008324FC|5 0
+
+Code "P2 Always Sonic"
+write8 p008324FC|5 1
+
+Code "P2 Always Tails"
+write8 p008324FC|5 2
+
+Code "P2 Always Knuckles"
+write8 p008324FC|5 4
+
+Code "P2 Always Mighty"
+write8 p008324FC|5 8
+
+Code "P2 Always Ray"
+write8 p008324FC|5 16
+
 Code "P1 Has Sonic's Abilities"
 write32 0085EB6C 0x004C8630
 
@@ -77,31 +110,10 @@ Code "P2 Has ERZ Super Sonic's Abilities"
 write32 0085EFC4 0x004C2340
 
 Code "Super Forms Can Fly"
-ifltu8 00E48758 38
-	ifeq8 0085EAC4 2
-		write32 0085EB6C 0x004C2340
-	else
-		ifeq32 0085E9F8 0x004C20D0
-			write32 0085E9F8 0x004CAD80
-		else
-			ifeq8 0085EA60 1
-				write32 0085EFC4 0x004C8630
-			endif
-			ifeq8 0085EA60 2
-				write32 0085EFC4 0x004C8990
-			endif
-			ifeq8 0085EA60 4
-				write32 0085EFC4 0x004C8A70
-			endif
-			ifeq8 0085EA60 8
-				write32 0085EFC4 0x004C8B70
-			endif
-			ifeq8 0085EA60 16
-				write32 0085EFC4 0x004C8DF0
-			endif
-		endif
-	endif
-endif
+write8 p00E9C5D4|00441790 2
+
+Code "Disable Super Music"
+write8 p00E9C5D4|00441798 0
 
 Code "Super Forms Can Be Canceled"
 ifeq8 0085EAC4 2
@@ -114,6 +126,33 @@ ifeq8 0085EAC4 2
 else
 	write16 0045317A 0x487D
 endif
+
+Code "P1 Have Bubble Shield Effects (No Protection)"
+write8 0085EA6C 2
+
+Code "P1 Have Flame Shield Effects (No Protection)"
+write8 0085EA6C 3
+
+Code "P1 Have Lightning Shield Effects (No Protection)"
+write8 0085EA6C 4
+
+Code "P2 Have Bubble Shield Effects (No Protection)"
+write8 0085EEC4 2
+
+Code "P2 Have Flame Shield Effects (No Protection)"
+write8 0085EEC4 3
+
+Code "P2 Have Lightning Shield Effects (No Protection)"
+write8 0085EEC4 4
+
+Code "Always Hide HUD"
+write8 0086FFF5 0
+
+Code "Enable Vape Mode"
+write8 p00E9C5D4|0044178C 1
+
+Code "Enable Max Control"
+write8 p00E9C5D4|000410B4 1
 
 Patch "Disable Background Pausing"
 write8 005FDD00 0xEB
