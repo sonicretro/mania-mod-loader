@@ -194,6 +194,10 @@ static inline BOOL WriteCall(void *writeaddress, void *funcaddress)
 	static RETURN_TYPE (__thiscall *const NAME)ARGS = (RETURN_TYPE (__thiscall *)ARGS)ADDRESS
 #define VoidFunc(NAME, ADDRESS) FunctionPointer(void,NAME,(void),ADDRESS)
 
+// "Offset" Function pointer declarations.
+#define OffsetFunctionPointer(RETURN_TYPE, NAME, ARGS, ADDRESS) \
+	static RETURN_TYPE (__cdecl *const NAME)ARGS = (RETURN_TYPE (__cdecl **)ARGS)ADDRESS
+
 // Non-static FunctionPointer.
 // If declaring a FunctionPointer within a function, use this one instead.
 // Otherwise, the program will crash on Windows XP.
