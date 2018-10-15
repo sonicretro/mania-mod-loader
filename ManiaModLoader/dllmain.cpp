@@ -134,7 +134,48 @@ struct MusicInfo
 	int field_264;
 };
 
-void *ReadFileData_ptr = (void*)0x5A0AA0;
+
+void *DecryptBytes_ptr = (void*)0x005C4EF0;
+int DecryptBytes(fileinfo *file, void *buffer, int bufferSize)
+{
+	int result;
+	__asm
+	{
+		push bufferSize
+		push buffer
+		mov ecx, file
+		call DecryptBytes_ptr
+		mov result, eax
+	}
+	return result;
+}
+
+
+void *LoadFile_ptr = (void*)0x005C4C20;
+int LoadFile(char *filename, fileinfo *info, void* unknown)
+{
+	int result;
+	__asm
+	{
+		mov ecx, info
+		push unknown
+		push filename
+		call LoadFile_ptr
+		//add esp, 4
+		mov result, eax
+	}
+	return result;
+}
+
+int ReadBytesFromFile(fileinfo* file, void* buffer, int bytes)
+{
+	int bytesRead = (*(decltype(fread)**)0x076AD088)(buffer, 1, bytes, file->File);
+	if (file->IsEncrypted)
+		DecryptBytes(file, buffer, bytes);
+	return bytesRead;
+}
+
+/*void *ReadFileData_ptr = (void*)0x5A0AA0;
 inline int ReadFileData(void *buffer, fileinfo *a2, unsigned int _size)
 {
 	int result;
@@ -148,7 +189,7 @@ inline int ReadFileData(void *buffer, fileinfo *a2, unsigned int _size)
 		mov result, eax
 	}
 	return result;
-}
+}*/
 
 DataArray(struct_0, stru_D79CA0, 0xD79CA0, 16);
 DWORD basschan;
@@ -272,16 +313,18 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int
 	{
 		fileinfo fi;
 		if (LoadFile(buf, &fi) == 1)
+ 		memset(&fi, 0, sizeof(fileinfo));
+		if (LoadFile(buf, &fi, buf))
 		{
-			musicbuf = new char[fi.size];
-			ReadFileData(musicbuf, &fi, fi.size);
-			if (fi.file)
+			musicbuf = new char[fi.FileSize];
+			ReadBytesFromFile(&fi, musicbuf, fi.FileSize);
+			if (fi.File)
 			{
-				((decltype(fclose)*)0x37FB164)(fi.file);
-				fi.file = nullptr;
+				(*(decltype(fclose)**)0x076AD07C)(fi.File);
+				fi.File = nullptr;
 			}
 			useloop = loopstart > 0;
-			basschan = BASS_StreamCreateFile(TRUE, musicbuf, 0, fi.size, BASS_STREAM_DECODE | (useloop ? BASS_SAMPLE_LOOP : 0));
+			//basschan = BASS_StreamCreateFile(TRUE, musicbuf, 0, fi.FileSize, BASS_STREAM_DECODE | (useloop ? BASS_SAMPLE_LOOP : 0));
 		}
 	}
 	else

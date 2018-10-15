@@ -65,10 +65,17 @@ enum Characters
 
 struct fileinfo
 {
-	FILE *file;
-	_DWORD dword4;
-	_BYTE gap8[16384];
-	_DWORD fileoff;
+	int FileSize;
+	_DWORD Unknown04;
+	FILE* File;
+	int Unknown0C;
+	int Unknown10;
+	BYTE* FileAddress;
+	bool Unknown18;
+	bool IsEncrypted;
+	_BYTE decryptionkey[32];
+	_BYTE gap3A[0x2000];
+	/*_DWORD fileoff;
 	_DWORD size;
 	_DWORD dword4010;
 	_DWORD dword4014;
@@ -78,7 +85,7 @@ struct fileinfo
 	_DWORD dword4024;
 	_BYTE decryptionkey[32];
 	_WORD word4048;
-	_BYTE byte404A;
+	_BYTE byte404A;*/
 };
 
 struct fileheader
@@ -196,6 +203,5 @@ VoidFunc(Ray_JumpAbilities, 0x4C8DF0);
 VoidFunc(Sonic_CheckDoPeelOut, 0x4C8FF0);
 VoidFunc(ERZSuperSonic_JumpAbilities, 0x4C2340);
 FastcallFunctionPointer(void, HashFilename, (char *filename, int *hash), 0x5CAE80); // Incorrect address on version 1.05.0713 (Before Patch).
-FastcallFunctionPointer(int, LoadFile, (char *filename, fileinfo *info), 0x5C4C20); // Incorrect address on version 1.05.0713 (Before Patch).
 VoidFunc(MainGameLoop, 0x5C7540); 
 //VoidFunc(IncrementTimer, 0x5C74E0);
