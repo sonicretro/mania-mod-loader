@@ -145,6 +145,13 @@ write8 0085EEC4 3
 Code "P2 Have Lightning Shield Effects (No Protection)"
 write8 0085EEC4 4
 
+Patch "Always Play Cutscenes"
+write8 02BD68D1 0xEB
+
+Patch "Disable Extra Up Jingle"
+write8 03BAF160 0xC3
+writenop 03BB18FD 10
+
 Code "Always Hide HUD"
 write8 0086FFF5 0
 
@@ -152,7 +159,10 @@ Code "Enable Vape Mode"
 write8 p00E9C5D4|0044178C 1
 
 Code "Enable Max Control"
-write8 p00E9C5D4|000410B4 1
+write8 p00E9C5D4|000410B4 0x0D
+
+Patch "Disable Bonus Warps from Checkpoints"
+write8 0045B3A7 0xEB
 
 Patch "Disable Background Pausing"
 write8 005FDD00 0xEB
