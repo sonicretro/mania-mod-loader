@@ -3,7 +3,7 @@
 #include "MemAccess.h"
 
 static const int ModLoaderVer = 1;
-static const int GameVer = 3;
+static const int GameVer = 4;
 
 struct PatchInfo
 {
@@ -55,19 +55,27 @@ enum ShieldTypes
 
 enum Characters
 {
-	Characters_None,
-	Characters_Sonic,
-	Characters_Tails,
-	Characters_AlsoSonic,
-	Characters_Knuckles
+	Characters_None		= 0b00000,
+	Characters_Sonic	= 0b00001,
+	Characters_Tails	= 0b00010,
+	Characters_Knuckles = 0b00100,
+	Characters_Mighty	= 0b01000,
+	Characters_Ray		= 0b10000
 };
 
 struct fileinfo
 {
-	FILE *file;
-	_DWORD dword4;
-	_BYTE gap8[16384];
-	_DWORD fileoff;
+	int FileSize;
+	_DWORD Unknown04;
+	FILE* File;
+	int Unknown0C;
+	int Unknown10;
+	BYTE* FileAddress;
+	bool Unknown18;
+	bool IsEncrypted;
+	_BYTE decryptionkey[32];
+	_BYTE gap3A[0x2000];
+	/*_DWORD fileoff;
 	_DWORD size;
 	_DWORD dword4010;
 	_DWORD dword4014;
@@ -77,7 +85,7 @@ struct fileinfo
 	_DWORD dword4024;
 	_BYTE decryptionkey[32];
 	_WORD word4048;
-	_BYTE byte404A;
+	_BYTE byte404A;*/
 };
 
 struct fileheader
@@ -90,6 +98,7 @@ struct fileheader
 	char anonymous_8[3];
 };
 
+// TODO: Player structure has changed a little, This needs updating
 struct PlayerData
 {
 	char field_0[2];
@@ -154,28 +163,45 @@ struct PlayerData
 };
 
 // define function and variable pointers here
-DataPointer(int, ReadFromPack, 0x630C10);
-DataPointer(int, ConsoleEnabled, 0x6331A4);
-DataPointer(float, MusicVolume, 0x638CC4);
-DataPointer(PlayerData, Player1Data, 0xA4C6C0);
-DataPointer(PlayerData, Player2Data, 0xA4CB18);
-DataPointer(int, TimerCentiframes, 0xCCF6EC);
-DataPointer(int, DebugEnabled, 0xCCF708);
-DataPointer(int, UpdateTimer, 0xCCF710);
-DataPointer(char, GameMode, 0xCCF716);
-DataPointer(char, TimerCentiseconds, 0xCCF717);
-DataPointer(char, TimerSeconds, 0xCCF718);
-DataPointer(char, TimerMinutes, 0xCCF719);
+DataPointer(BYTE, ReadFromPack, 0x6F1804);
+DataPointer(BYTE, ConsoleEnabled, 0x6F1806);
 
-FunctionPointer(int, PrintDebug, (const char *fmt, ...), 0x401140);
-VoidFunc(InitPlayer, 0x47F560);
-FastcallFunctionPointer(int, Player_CheckGoSuper, (PlayerData *a1, int emeraldflags), 0x4832A0);
-VoidFunc(Sonic_JumpAbilities, 0x4835D0);
-VoidFunc(Tails_JumpAbilities, 0x483910);
-VoidFunc(Knuckles_JumpAbilities, 0x4839E0);
-VoidFunc(Sonic_CheckDoPeelOut, 0x483AD0);
-FastcallFunctionPointer(void, HashFilename, (char *filename, int *hash), 0x5A0030);
-FastcallFunctionPointer(int, LoadFile, (char *filename, fileinfo *info), 0x5A0760);
-VoidFunc(MainGameLoop, 0x5A1DC0);
-VoidFunc(IncrementTimer, 0x5A5290);
-VoidFunc(ERZSuperSonic_JumpAbilities, 0x19CFF00);
+DataPointer(float, MusicVolume, 0xE4805C);
+DataPointer(PlayerData, Player1Data, 0x85E9A0);
+DataPointer(PlayerData, Player2Data, 0x85EDF8);
+DataPointer(int, TimerCentiframes, 0xE4874D);
+DataPointer(int, DebugEnabled, 0xE48768);
+DataPointer(int, UpdateTimer, 0xE48770);
+DataPointer(char, GameMode, 0xE487787);
+DataPointer(char, TimerCentiseconds, 0xE48778);
+DataPointer(char, TimerSeconds, 0xE48779);
+DataPointer(char, TimerMinutes, 0xE4877A);
+
+// If a function has a jump function where the function is just a jump to the proper
+// function it should be used whenever possible. These usually stay in the same spots in 
+// the same general area between versions and improves the chances of future version
+// compatibility. These functions are almost always compiler generated, Hence the close
+// proximity.
+FunctionPointer(int, playWav, (_WORD wavIndex, int a2, _BYTE playLength), 0x5BBBF0);
+FunctionPointer(_WORD, loadWav, (const char *name), 0x5BBB50);
+
+// These functions are a special case. Their jump functions do not align between versions so we'll use their stored 
+// jump functions in a stored "offset" which does match between versions. Most functions have these as well 
+// but usually isn't needed to get a working function. To make matters worse. Some functions don't have a jump function
+// but do have an "offset". Meaning we'll need 2 different ways to get these and those for multi-version support,
+// and to make things worse. The "offsets" are dynamically set, We'll have to use them only in runtime.
+OffsetFunctionPointer(void *, spawnObject, (_WORD objectID, _DWORD type, _DWORD x, _DWORD y), 0xE9C700); // It's return is a object unique pointer to the object's memory.
+OffsetFunctionPointer(int, PrintDebug, (const char *fmt, ...), 0xE9C968);
+
+VoidFunc(InitPlayer, 0x4C33F0);
+FastcallFunctionPointer(int, Player_CheckGoSuper, (PlayerData *a1, int emeraldflags), 0x4C8280);
+VoidFunc(Sonic_JumpAbilities, 0x4C8630);
+VoidFunc(Tails_JumpAbilities, 0x4C8990);
+VoidFunc(Knuckles_JumpAbilities, 0x4C8A70);
+VoidFunc(Mighty_JumpAbilities, 0x4C8B70);
+VoidFunc(Ray_JumpAbilities, 0x4C8DF0);
+VoidFunc(Sonic_CheckDoPeelOut, 0x4C8FF0);
+VoidFunc(ERZSuperSonic_JumpAbilities, 0x4C2340);
+FastcallFunctionPointer(void, HashFilename, (char *filename, int *hash), 0x5CAE80); // Incorrect address on version 1.05.0713 (Before Patch).
+VoidFunc(MainGameLoop, 0x5C7540); 
+//VoidFunc(IncrementTimer, 0x5C74E0);

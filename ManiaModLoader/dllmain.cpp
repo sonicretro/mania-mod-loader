@@ -69,21 +69,21 @@ int CheckFile_i(char *buf)
 	return !ReadFromPack;
 }
 
-int loc_5A07DB = 0x5A07DB;
-int loc_5A087B = 0x5A087B;
+int loc_694C98D = 0x0694C98D;
+int loc_694C97D = 0x0694C97D;
 __declspec(naked) void CheckFile()
 {
 	__asm
 	{
-		lea eax, [esp + 20h]
+		lea eax, [ebp + -408h]
 		push eax
 		call CheckFile_i
 		add esp, 4
 		test eax, eax
 		jnz blah
-		jmp loc_5A087B
+		jmp loc_694C97D
 	blah:
-		jmp loc_5A07DB
+		jmp loc_694C98D
 	}
 }
 
@@ -134,7 +134,48 @@ struct MusicInfo
 	int field_264;
 };
 
-void *ReadFileData_ptr = (void*)0x5A0AA0;
+
+void *DecryptBytes_ptr = (void*)0x005C4EF0;
+int DecryptBytes(fileinfo *file, void *buffer, int bufferSize)
+{
+	int result;
+	__asm
+	{
+		push bufferSize
+		push buffer
+		mov ecx, file
+		call DecryptBytes_ptr
+		mov result, eax
+	}
+	return result;
+}
+
+
+void *LoadFile_ptr = (void*)0x005C4C20;
+int LoadFile(char *filename, fileinfo *info, void* unknown)
+{
+	int result;
+	__asm
+	{
+		mov ecx, info
+		push unknown
+		push filename
+		call LoadFile_ptr
+		//add esp, 4
+		mov result, eax
+	}
+	return result;
+}
+
+int ReadBytesFromFile(fileinfo* file, void* buffer, int bytes)
+{
+	int bytesRead = (*(decltype(fread)**)0x076AD088)(buffer, 1, bytes, file->File);
+	if (file->IsEncrypted)
+		DecryptBytes(file, buffer, bytes);
+	return bytesRead;
+}
+
+/*void *ReadFileData_ptr = (void*)0x5A0AA0;
 inline int ReadFileData(void *buffer, fileinfo *a2, unsigned int _size)
 {
 	int result;
@@ -148,7 +189,7 @@ inline int ReadFileData(void *buffer, fileinfo *a2, unsigned int _size)
 		mov result, eax
 	}
 	return result;
-}
+}*/
 
 DataArray(struct_0, stru_D79CA0, 0xD79CA0, 16);
 DWORD basschan;
@@ -272,16 +313,18 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int
 	{
 		fileinfo fi;
 		if (LoadFile(buf, &fi) == 1)
+ 		memset(&fi, 0, sizeof(fileinfo));
+		if (LoadFile(buf, &fi, buf))
 		{
-			musicbuf = new char[fi.size];
-			ReadFileData(musicbuf, &fi, fi.size);
-			if (fi.file)
+			musicbuf = new char[fi.FileSize];
+			ReadBytesFromFile(&fi, musicbuf, fi.FileSize);
+			if (fi.File)
 			{
-				((decltype(fclose)*)0x37FB164)(fi.file);
-				fi.file = nullptr;
+				(*(decltype(fclose)**)0x076AD07C)(fi.File);
+				fi.File = nullptr;
 			}
 			useloop = loopstart > 0;
-			basschan = BASS_StreamCreateFile(TRUE, musicbuf, 0, fi.size, BASS_STREAM_DECODE | (useloop ? BASS_SAMPLE_LOOP : 0));
+			//basschan = BASS_StreamCreateFile(TRUE, musicbuf, 0, fi.FileSize, BASS_STREAM_DECODE | (useloop ? BASS_SAMPLE_LOOP : 0));
 		}
 	}
 	else
@@ -336,18 +379,18 @@ void SlowDownMusic()
 	BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, 0);
 }
 
-VoidFunc(sub_599640, 0x599640);
+VoidFunc(sub_5BC220, 0x5BC220);
 void ResumeSound()
 {
 	BASS_ChannelPlay(basschan, false);
-	sub_599640();
+	sub_5BC220();
 }
 
-VoidFunc(sub_5995E0, 0x5995E0);
+VoidFunc(sub_5BC1C0, 0x5BC1C0);
 void PauseSound()
 {
 	BASS_ChannelPause(basschan);
-	sub_5995E0();
+	sub_5BC1C0();
 }
 
 // Code Parser.
@@ -355,7 +398,7 @@ static CodeParser codeParser;
 
 float bluespheretempos[]{ 0, 8.6956521739130434782608f, 19.047619047619047619f, 31.578947368421052631f, 47.0588235294117647f };
 
-DataPointer(MusicInfo *, MusicSlots, 0xD83664);
+DataPointer(MusicInfo *, MusicSlots, 0xEBBDA0);
 static void __cdecl ProcessCodes()
 {
 	codeParser.processCodeList();
@@ -448,7 +491,7 @@ static vector<wstring> split(const wstring &s, wchar_t delim)
 	return elems;
 }
 
-VoidFunc(sub_5BD0E0, 0x5BD0E0);
+VoidFunc(sub_005E2F20, 0x005E2F20);
 void InitMods()
 {
 	HookDirect3D();
@@ -496,26 +539,26 @@ void InitMods()
 	}
 
 	bool speedshoestempo = false;
-	if (enablevgmstream = (bool)BASS_Init(-1, 44100, 0, nullptr, nullptr))
+	/*if (enablevgmstream = (bool)BASS_Init(-1, 44100, 0, nullptr, nullptr))
 	{
-		WriteJump((void*)0x5992C0, PlayMusicFile_BASS);
-		WriteData((char*)0x5996A0, (char)0xC3);
-		WriteData((char*)0x4016A9, (char)0xB8);
-		WriteData((int*)0x4016AA, 1);
-		WriteJump((void*)0x4016AE, (void*)0x4016C3);
-		WriteData((char*)0x401AD9, (char)0xEB);
-		WriteJump((void*)0x401B7A, (void*)0x401BB4);
-		WriteJump((void*)0x401C1D, (void*)0x401C39);
-		WriteCall((void*)0x5CADA8, PauseSound);
-		WriteCall((void*)0x5CADEB, ResumeSound);
-		WriteCall((void*)0x5CAE95, PauseSound);
-		WriteCall((void*)0x5CAEB6, ResumeSound);
-		WriteData((char*)0x5C95DF, (char)0xEB);
+		WriteJump((void*)0x5BBEA0, PlayMusicFile_BASS);
+		WriteData((char*)0x5BC280, (char)0xC3);
+		//WriteData((char*)0x4016A9, (char)0xB8);//
+		//WriteData((int*)0x4016AA, 1);//
+		//WriteJump((void*)0x4016AE, (void*)0x4016C3);//
+		//WriteData((char*)0x401AD9, (char)0xEB);//
+		//WriteJump((void*)0x401B7A, (void*)0x401BB4);//
+		//WriteJump((void*)0x401C1D, (void*)0x401C39);//
+		WriteCall((void*)0x5FDE53, PauseSound);
+		WriteCall((void*)0x5FDE74, ResumeSound);
+		//WriteCall((void*)0x5CAE95, PauseSound);
+		//WriteCall((void*)0x5CAEB6, ResumeSound);
+		//WriteData((char*)0x005FCD6F, (char)0xEB);
 		speedshoestempo = settings->getBool("SpeedShoesTempoChange");
 		bluespheretempo = settings->getBool("BlueSpheresTempoChange");
 	}
-	else
-		musictramp = new Trampoline(0x5992C0, 0x5992C6, PlayMusicFile_Normal);
+	else*/
+		musictramp = new Trampoline(0x5BBEA0, 0x5BBEA6, PlayMusicFile_Normal);
 
 	vector<std::pair<ModInitFunc, string>> initfuncs;
 	vector<std::pair<string, string>> errors;
@@ -642,7 +685,7 @@ void InitMods()
 			savepath = mod_dirA + "\\savedata";
 	}
 
-	if (speedshoestempo)
+	/*if (speedshoestempo)
 	{
 		WriteCall((void*)0x43DCE6, SpeedUpMusic);
 		WriteCall((void*)0x47EA16, SlowDownMusic);
@@ -652,7 +695,7 @@ void InitMods()
 	{
 		WriteJump((void*)0x377E6E0, API_LoadUserFile_r);
 		WriteJump((void*)0x377F730, API_SaveUserFile_r);
-	}
+	}*/
 
 	if (!errors.empty())
 	{
@@ -764,14 +807,15 @@ void InitMods()
 		codes_str.close();
 	}
 
-	WriteJump((void*)0x5A07CE, CheckFile);
-	WriteCall((void*)0x5CAA0F, ProcessCodes);
+	WriteJump((void*)0x0694C974, CheckFile);
+	WriteCall((void*)0x005FD90E, ProcessCodes);
 
-	sub_5BD0E0();
+	sub_005E2F20();
 }
 
-#pragma warning(suppress : 4838)
-static const char verchk[] = { 0xE8u, 0x44, 0x2C, 0xFFu, 0xFFu, 0xE8u, 0xEFu, 0x6E, 0xFDu, 0xFFu };
+static const uint8_t verchk[] = { 0xE8u, 0x52, 0x58, 0xFEu, 0xFFu, 0xE8u, 0x4Du, 0xD3, 0xFEu, 0xFFu };
+static const uint8_t verchk_1422308210609141148[] = { 0xE8u, 0x72, 0x45, 0xC1u, 0x0E, 0xE8u, 0x4Du, 0xD3, 0xFEu, 0xFFu };
+//E8 72 45 C1 0E E8 4D
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
@@ -780,10 +824,15 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		if (memcmp(verchk, (const char *)0x5CA497, sizeof(verchk)) != 0)
-			MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
+		if (memcmp(verchk, (const char *)0x005FD6C9, sizeof(verchk)) != 0)
+		{
+			if (memcmp(verchk, (const char *)0x005FD6C9, sizeof(verchk_1422308210609141148)) != 0)
+				MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease update Sonic Mania on Steam.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
+			else
+				MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
+		}
 		else
-			WriteCall((void*)0x5CA497, InitMods);
+			WriteCall((void*)0x005FD6C9, InitMods);
 		break;
 	case DLL_PROCESS_DETACH:
 		break;
