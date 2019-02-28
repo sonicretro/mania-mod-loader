@@ -312,7 +312,7 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int
 	if (ReadFromPack && newname == buf)
 	{
 		fileinfo fi;
-		if (LoadFile(buf, &fi) == 1)
+		if (LoadFile(buf, &fi, buf) == 1)
  		memset(&fi, 0, sizeof(fileinfo));
 		if (LoadFile(buf, &fi, buf))
 		{

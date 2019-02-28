@@ -196,7 +196,7 @@ static inline BOOL WriteCall(void *writeaddress, void *funcaddress)
 
 // "Offset" Function pointer declarations.
 #define OffsetFunctionPointer(RETURN_TYPE, NAME, ARGS, ADDRESS) \
-	static RETURN_TYPE (__cdecl *const NAME)ARGS = (RETURN_TYPE (__cdecl **)ARGS)ADDRESS
+	static RETURN_TYPE (__cdecl *const NAME)ARGS = *(RETURN_TYPE (__cdecl **)ARGS)ADDRESS
 
 // Non-static FunctionPointer.
 // If declaring a FunctionPointer within a function, use this one instead.
