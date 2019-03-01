@@ -191,7 +191,7 @@ FunctionPointer(_WORD, loadWav, (const char *name), 0x5BBB50);
 // but do have an "offset". Meaning we'll need 2 different ways to get these and those for multi-version support,
 // and to make things worse. The "offsets" are dynamically set, We'll have to use them only in runtime.
 OffsetFunctionPointer(void *, spawnObject, (_WORD objectID, _DWORD type, _DWORD x, _DWORD y), 0xE9C700); // It's return is a object unique pointer to the object's memory.
-OffsetFunctionPointer(int, PrintDebug, (const char *fmt, ...), 0xE9C968);
+#define PrintDebug printf
 
 VoidFunc(InitPlayer, 0x4C33F0);
 FastcallFunctionPointer(int, Player_CheckGoSuper, (PlayerData *a1, int emeraldflags), 0x4C8280);
