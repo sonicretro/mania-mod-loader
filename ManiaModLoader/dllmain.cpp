@@ -26,6 +26,8 @@ using std::unique_ptr;
 using std::vector;
 using std::unordered_map;
 
+#define STATUS_OK 200
+
 /**
 * Change write protection of the .trace section.
 * @param protect True to protect; false to unprotect.
@@ -441,7 +443,8 @@ static void __cdecl ProcessCodes()
 }
 
 string savepath;
-void __cdecl API_LoadUserFile_r(const char *filename, void *buffer, unsigned int bufSize, void (__cdecl *a4)(int))
+StdcallFunctionPointer(int, TryLoadUserFile, (const char *filename, void *buffer, unsigned int bufSize, int(__cdecl *setStatus)(int)), 0x06EF1780);
+int __stdcall TryLoadUserFile_r(const char *filename, void *buffer, unsigned int bufSize, int (__cdecl *setStatus)(int))
 {
 	PrintDebug("Attempting to load file: %s\n", filename);
 	string path = savepath + '\\' + filename;
@@ -455,14 +458,18 @@ void __cdecl API_LoadUserFile_r(const char *filename, void *buffer, unsigned int
 		fseek(f, 0, SEEK_SET);
 		fread(buffer, 1, size, f);
 		fclose(f);
+		if (setStatus)
+			return setStatus(STATUS_OK);
+		return setStatus(500);
 	}
 	else
-		PrintDebug("Does not exist!\n");
-	if (a4)
-		a4(1);
+	{
+		PrintDebug("  Does not exist! Loading Steam UserFile!\n");
+		return TryLoadUserFile(filename, buffer, bufSize, setStatus);
+	}
 }
 
-void __cdecl API_SaveUserFile_r(const char *filename, void *buffer, unsigned int bufSize, void (__cdecl *a4)(int))
+int __stdcall TrySaveUserFile_r(const char *filename, void *buffer, unsigned int bufSize, int (__cdecl *setStatus)(int), unsigned int a5)
 {
 	PrintDebug("Attempting to save file: %s\n", filename);
 	if (!IsDirectory(savepath))
@@ -470,14 +477,20 @@ void __cdecl API_SaveUserFile_r(const char *filename, void *buffer, unsigned int
 	string path = savepath + '\\' + filename;
 	FILE *f = fopen(path.c_str(), "wb");
 	if (!f)
-	{
-		a4(0);
-		return;
-	}
+		return setStatus(500);
 	fwrite(buffer, 1, bufSize, f);
 	fclose(f);
-	a4(1);
+	return setStatus(STATUS_OK);
 }
+
+int __stdcall TryDeleteUserFile_r(const char *filename, int(__cdecl *setStatus)(int))
+{
+	PrintDebug("Attempting to delete file: %s\n", filename);
+	string path = savepath + '\\' + filename;
+	DeleteFileA(path.c_str());
+	return setStatus(STATUS_OK);
+}
+
 
 static vector<wstring> split(const wstring &s, wchar_t delim)
 {
@@ -689,13 +702,14 @@ void InitMods()
 	{
 		WriteCall((void*)0x43DCE6, SpeedUpMusic);
 		WriteCall((void*)0x47EA16, SlowDownMusic);
-	}
+	}*/
 
 	if (!savepath.empty())
 	{
-		WriteJump((void*)0x377E6E0, API_LoadUserFile_r);
-		WriteJump((void*)0x377F730, API_SaveUserFile_r);
-	}*/
+		WriteJump((void*)0x005ECF40, TryLoadUserFile_r);
+		WriteJump((void*)0x005ED270, TrySaveUserFile_r);
+		WriteJump((void*)0x005ED530, TryDeleteUserFile_r);
+	}
 
 	if (!errors.empty())
 	{
