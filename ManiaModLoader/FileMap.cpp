@@ -185,7 +185,7 @@ void FileMap::setReplaceFile(const std::string &origFile, const std::string &des
 	m_fileMap[origFile] = { destFile, modIdx };
 
 #ifdef _DEBUG
-	PrintDebug("Replaced file: \"%s\" = \"%s\"\n", origFile.c_str(), destFile.c_str());
+	printf("Replaced file: \"%s\" = \"%s\"\n", origFile.c_str(), destFile.c_str());
 #endif
 }
 

@@ -28,6 +28,8 @@ using std::unordered_map;
 
 #define STATUS_OK 200
 
+static bool SteamProtected = false;
+
 /**
 * Change write protection of the .trace section.
 * @param protect True to protect; false to unprotect.
@@ -244,7 +246,7 @@ int bluespheretime = -1;
 
 /*int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
 {
-	//PrintDebug("PlayMusicFile_BASS(\"%s\", %u, %d, %u, %d);\n", name, a2, a3, loopstart, a5);
+	//printf("PlayMusicFile_BASS(\"%s\", %u, %d, %u, %d);\n", name, a2, a3, loopstart, a5);
 	if (stru_D79CA0[a2].playStatus == 3)
 		return -1;
 	string namestr = name;
@@ -426,7 +428,7 @@ static void __cdecl ProcessCodes()
 					break;
 #ifdef _DEBUG
 				default:
-					PrintDebug("Unknown status code %d\n", status);
+					printf("Unknown status code %d\n", status);
 					break;
 #endif
 				}
@@ -447,7 +449,7 @@ string savepath;
 StdcallFunctionPointer(int, TryLoadUserFile, (const char *filename, void *buffer, unsigned int bufSize, int(__cdecl *setStatus)(int)), 0x06EF1780);
 int __stdcall TryLoadUserFile_r(const char *filename, void *buffer, unsigned int bufSize, int (__cdecl *setStatus)(int))
 {
-	PrintDebug("Attempting to load file: %s\n", filename);
+	printf("Attempting to load file: %s\n", filename);
 	string path = savepath + '\\' + filename;
 	if (IsFile(path))
 	{
@@ -465,14 +467,14 @@ int __stdcall TryLoadUserFile_r(const char *filename, void *buffer, unsigned int
 	}
 	else
 	{
-		PrintDebug("  Does not exist! Loading Steam UserFile!\n");
+		printf("  Does not exist! Loading Steam UserFile!\n");
 		return TryLoadUserFile(filename, buffer, bufSize, setStatus);
 	}
 }
 
 int __stdcall TrySaveUserFile_r(const char *filename, void *buffer, unsigned int bufSize, int (__cdecl *setStatus)(int), unsigned int a5)
 {
-	PrintDebug("Attempting to save file: %s\n", filename);
+	printf("Attempting to save file: %s\n", filename);
 	if (!IsDirectory(savepath))
 		CreateDirectoryA(savepath.c_str(), nullptr);
 	string path = savepath + '\\' + filename;
@@ -486,7 +488,7 @@ int __stdcall TrySaveUserFile_r(const char *filename, void *buffer, unsigned int
 
 int __stdcall TryDeleteUserFile_r(const char *filename, int(__cdecl *setStatus)(int))
 {
-	PrintDebug("Attempting to delete file: %s\n", filename);
+	printf("Attempting to delete file: %s\n", filename);
 	string path = savepath + '\\' + filename;
 	DeleteFileA(path.c_str());
 	return setStatus(STATUS_OK);
@@ -509,11 +511,13 @@ FunctionPointer(int, sub_1CE730, (), 0x1CE730);
 int InitMods()
 {
 	HookDirect3D();
+	if (ConsoleEnabled)
+		freopen("CONOUT$", "w", stdout);
 	FILE *f_ini = _wfopen(L"mods\\ManiaModLoader.ini", L"r");
 	if (!f_ini)
 	{
 		MessageBox(nullptr, L"mods\\ManiaModLoader.ini could not be read!", L"Mania Mod Loader", MB_ICONWARNING);
-		return sub_1CE730();
+		return SteamProtected ? 0 : sub_1CE730();
 	}
 	unique_ptr<IniFile> ini(new IniFile(f_ini));
 	fclose(f_ini);
@@ -541,13 +545,13 @@ int InitMods()
 
 	if (ConsoleEnabled)
 	{
-		PrintDebug("Mania Mod Loader (API version %d), built " __TIMESTAMP__ "\n",
+		printf("Mania Mod Loader (API version %d), built " __TIMESTAMP__ "\n",
 			ModLoaderVer);
 #ifdef MODLOADER_GIT_VERSION
 #ifdef MODLOADER_GIT_DESCRIBE
-		PrintDebug("%s, %s\n", MODLOADER_GIT_VERSION, MODLOADER_GIT_DESCRIBE);
+		printf("%s, %s\n", MODLOADER_GIT_VERSION, MODLOADER_GIT_DESCRIBE);
 #else /* !MODLOADER_GIT_DESCRIBE */
-		PrintDebug("%s\n", MODLOADER_GIT_VERSION);
+		printf("%s\n", MODLOADER_GIT_VERSION);
 #endif /* MODLOADER_GIT_DESCRIBE */
 #endif /* MODLOADER_GIT_VERSION */
 	}
@@ -578,7 +582,7 @@ int InitMods()
 	vector<std::pair<string, string>> errors;
 
 	if (ConsoleEnabled)
-		PrintDebug("Loading mods...\n");
+		printf("Loading mods...\n");
 	for (unsigned int i = 1; i <= 999; i++)
 	{
 		char key[8];
@@ -593,7 +597,7 @@ int InitMods()
 		if (!f_mod_ini)
 		{
 			if (ConsoleEnabled)
-				PrintDebug("Could not open file mod.ini in \"mods\\%s\".\n", mod_dirA.c_str());
+				printf("Could not open file mod.ini in \"mods\\%s\".\n", mod_dirA.c_str());
 			errors.push_back(std::pair<string, string>(mod_dirA, "mod.ini missing"));
 			continue;
 		}
@@ -603,7 +607,7 @@ int InitMods()
 		const IniGroup *const modinfo = ini_mod->getGroup("");
 		const string mod_nameA = modinfo->getString("Name");
 		if (ConsoleEnabled)
-			PrintDebug("%u. %s\n", i, mod_nameA.c_str());
+			printf("%u. %s\n", i, mod_nameA.c_str());
 
 		// Check for Data replacements.
 		const string modSysDirA = mod_dirA + "\\data";
@@ -631,7 +635,7 @@ int InitMods()
 
 					const string dll_filenameA = UTF16toMBS(dll_filename, CP_ACP);
 					if (ConsoleEnabled)
-						PrintDebug("Failed loading mod DLL \"%s\": %s\n", dll_filenameA.c_str(), message.c_str());
+						printf("Failed loading mod DLL \"%s\": %s\n", dll_filenameA.c_str(), message.c_str());
 					errors.push_back(std::pair<string, string>(mod_nameA, "DLL error - " + message));
 				}
 				else
@@ -667,7 +671,7 @@ int InitMods()
 						{
 							const string dll_filenameA = UTF16toMBS(dll_filename, CP_ACP);
 							if (ConsoleEnabled)
-								PrintDebug("File \"%s\" is not built for the current version of the game.\n", dll_filenameA.c_str());
+								printf("File \"%s\" is not built for the current version of the game.\n", dll_filenameA.c_str());
 							errors.push_back(std::pair<string, string>(mod_nameA, "Not a valid mod file."));
 						}
 					}
@@ -675,7 +679,7 @@ int InitMods()
 					{
 						const string dll_filenameA = UTF16toMBS(dll_filename, CP_ACP);
 						if (ConsoleEnabled)
-							PrintDebug("File \"%s\" is not a valid mod file.\n", dll_filenameA.c_str());
+							printf("File \"%s\" is not a valid mod file.\n", dll_filenameA.c_str());
 						errors.push_back(std::pair<string, string>(mod_nameA, "Not a valid mod file."));
 					}
 				}
@@ -731,14 +735,14 @@ int InitMods()
 		initfuncs[i].first(initfuncs[i].second.c_str());
 
 	if (ConsoleEnabled)
-		PrintDebug("Finished loading mods\n");
+		printf("Finished loading mods\n");
 
 	// Check for patches.
 	ifstream patches_str("mods\\Patches.dat", ifstream::binary);
 	if (patches_str.is_open())
 	{
 		CodeParser patchParser;
-		codeParser.setOffset(baseAddress);
+		patchParser.setOffset(baseAddress);
 		static const char codemagic[6] = { 'c', 'o', 'd', 'e', 'v', '5' };
 		char buf[sizeof(codemagic)];
 		patches_str.read(buf, sizeof(buf));
@@ -747,28 +751,28 @@ int InitMods()
 			int codecount_header;
 			patches_str.read((char*)&codecount_header, sizeof(codecount_header));
 			if (ConsoleEnabled)
-				PrintDebug("Loading %d patches...\n", codecount_header);
+				printf("Loading %d patches...\n", codecount_header);
 			patches_str.seekg(0);
 			int codecount = patchParser.readCodes(patches_str);
 			if (codecount >= 0)
 			{
 				if (ConsoleEnabled)
-					PrintDebug("Loaded %d patches.\n", codecount);
+					printf("Loaded %d patches.\n", codecount);
 				patchParser.processCodeList();
 			}
 			else
 			{
 				if (ConsoleEnabled)
-					PrintDebug("ERROR loading patches: ");
+					printf("ERROR loading patches: ");
 				switch (codecount)
 				{
 				case -EINVAL:
 					if (ConsoleEnabled)
-						PrintDebug("Patch file is not in the correct format.\n");
+						printf("Patch file is not in the correct format.\n");
 					break;
 				default:
 					if (ConsoleEnabled)
-						PrintDebug("%s\n", strerror(-codecount));
+						printf("%s\n", strerror(-codecount));
 					break;
 				}
 			}
@@ -776,7 +780,7 @@ int InitMods()
 		else
 		{
 			if (ConsoleEnabled)
-				PrintDebug("Patch file is not in the correct format.\n");
+				printf("Patch file is not in the correct format.\n");
 		}
 		patches_str.close();
 	}
@@ -794,28 +798,28 @@ int InitMods()
 			int codecount_header;
 			codes_str.read((char*)&codecount_header, sizeof(codecount_header));
 			if (ConsoleEnabled)
-				PrintDebug("Loading %d codes...\n", codecount_header);
+				printf("Loading %d codes...\n", codecount_header);
 			codes_str.seekg(0);
 			int codecount = codeParser.readCodes(codes_str);
 			if (codecount >= 0)
 			{
 				if (ConsoleEnabled)
-					PrintDebug("Loaded %d codes.\n", codecount);
+					printf("Loaded %d codes.\n", codecount);
 				codeParser.processCodeList();
 			}
 			else
 			{
 				if (ConsoleEnabled)
-					PrintDebug("ERROR loading codes: ");
+					printf("ERROR loading codes: ");
 				switch (codecount)
 				{
 				case -EINVAL:
 					if (ConsoleEnabled)
-						PrintDebug("Code file is not in the correct format.\n");
+						printf("Code file is not in the correct format.\n");
 					break;
 				default:
 					if (ConsoleEnabled)
-						PrintDebug("%s\n", strerror(-codecount));
+						printf("%s\n", strerror(-codecount));
 					break;
 				}
 			}
@@ -823,18 +827,28 @@ int InitMods()
 		else
 		{
 			if (ConsoleEnabled)
-				PrintDebug("Code file is not in the correct format.\n");
+				printf("Code file is not in the correct format.\n");
 		}
 		codes_str.close();
 	}
 
 	WriteJump((void*)(baseAddress + 0x1C540E), CheckFile);
 	WriteCall((void*)(baseAddress + 0x1FE1BE), ProcessCodes);
+	return SteamProtected ? 0 : sub_1CE730();
+}
+HMODULE COMCTL32 = LoadLibraryA("comctl32");
 
-	return sub_1CE730();
+// I know, This is horrible, This is only here to allow the modloader to run with the protected exe
+void InitProtected()
+{
+	WriteData((BYTE*)GetProcAddress(COMCTL32, "InitCommonControls"), (BYTE)0x90);
+	SteamProtected = true;
+	InitMods();
+	return;
 }
 
-static const uint8_t verchk[] = { 0xE8u, 0xC2, 0x07, 0xFDu, 0xFFu, 0x85u, 0xC0u, 0x75, 0x07u, 0xA2u };
+static const uint8_t verchk_3617885[] = { 0xE8u, 0xC2, 0x07, 0xFDu, 0xFFu, 0x85u, 0xC0u, 0x75, 0x07u, 0xA2u };
+static const uint8_t verchk_3617885_Protected[] = { 0x96u, 0x83u, 0xE6u, 0x9Au, 0x25, 0x3C, 0xC7u, 0xE9u };
 //E8 72 45 C1 0E E8 4D
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -844,12 +858,16 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		if (memcmp(verchk, (const char *)(baseAddress + 0x1FDF69), sizeof(verchk)) != 0)
+		if (memcmp(verchk_3617885, (const char *)(baseAddress + 0x1FDF69), sizeof(verchk_3617885)) != 0)
 		{
-			MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
+			if (memcmp(verchk_3617885_Protected, (const char *)(baseAddress + 0x1FDF69), sizeof(verchk_3617885_Protected)) != 0)
+				MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader.\n\nMod functionality will be disabled.", L"Mania Mod Loader for Build 3617885", MB_ICONWARNING);
 		}
-		else
+
+		if (memcmp(verchk_3617885_Protected, (const char *)(baseAddress + 0x1FDF69), sizeof(verchk_3617885_Protected)) != 0)
 			WriteCall((void*)(baseAddress + 0x1FDF69), InitMods);
+		else
+			WriteJump(GetProcAddress(COMCTL32, "InitCommonControls"), InitProtected);
 		break;
 	case DLL_PROCESS_DETACH:
 		break;
