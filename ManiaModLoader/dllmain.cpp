@@ -68,11 +68,11 @@ int CheckFile_i(char *buf)
 		strncpy(buf, tmp, MAX_PATH);
 		return 1;
 	}
-	return !ReadFromPack;
+	return !UseDataPack;
 }
 
-int loc_694C98D = 0x0694C98D;
-int loc_694C97D = 0x0694C97D;
+int loc_LoadFile = (baseAddress + 0x1C5427);
+int loc_LoadDataPack = (baseAddress + 0x1C5417);
 __declspec(naked) void CheckFile()
 {
 	__asm
@@ -83,9 +83,9 @@ __declspec(naked) void CheckFile()
 		add esp, 4
 		test eax, eax
 		jnz blah
-		jmp loc_694C97D
+		jmp loc_LoadDataPack
 	blah:
-		jmp loc_694C98D
+		jmp loc_LoadFile
 	}
 }
 
@@ -242,7 +242,7 @@ bool enablevgmstream;
 bool bluespheretempo = false;
 int bluespheretime = -1;
 
-int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
+/*int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
 {
 	//PrintDebug("PlayMusicFile_BASS(\"%s\", %u, %d, %u, %d);\n", name, a2, a3, loopstart, a5);
 	if (stru_D79CA0[a2].playStatus == 3)
@@ -311,7 +311,7 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int
 	strncat(buf, name, MAX_PATH);
 	string newname = fileMap.replaceFile(buf);
 	string ext = GetExtension(newname);
-	if (ReadFromPack && newname == buf)
+	if (UseDataPack && newname == buf)
 	{
 		fileinfo fi;
 		if (LoadFile(buf, &fi, buf) == 1)
@@ -393,7 +393,7 @@ void PauseSound()
 {
 	BASS_ChannelPause(basschan);
 	sub_5BC1C0();
-}
+}*/
 
 // Code Parser.
 static CodeParser codeParser;
@@ -405,7 +405,7 @@ static void __cdecl ProcessCodes()
 {
 	codeParser.processCodeList();
 	RaiseEvents(modFrameEvents);
-	if (MusicSlots != nullptr && basschan != 0)
+	/*if (MusicSlots != nullptr && basschan != 0)
 	{
 		int song = MusicSlots->CurrentSong;
 		if (song != -1)
@@ -438,8 +438,9 @@ static void __cdecl ProcessCodes()
 		else
 			oldstatus = 0;
 		oldsong = song;
-	}
+	}*/
 	MainGameLoop();
+	RaiseEvents(modFramePostEvents);
 }
 
 string savepath;
@@ -504,15 +505,15 @@ static vector<wstring> split(const wstring &s, wchar_t delim)
 	return elems;
 }
 
-VoidFunc(sub_005E2F20, 0x005E2F20);
-void InitMods()
+FunctionPointer(int, sub_1CE730, (), 0x1CE730);
+int InitMods()
 {
 	HookDirect3D();
 	FILE *f_ini = _wfopen(L"mods\\ManiaModLoader.ini", L"r");
 	if (!f_ini)
 	{
 		MessageBox(nullptr, L"mods\\ManiaModLoader.ini could not be read!", L"Mania Mod Loader", MB_ICONWARNING);
-		return;
+		return sub_1CE730();
 	}
 	unique_ptr<IniFile> ini(new IniFile(f_ini));
 	fclose(f_ini);
@@ -571,7 +572,7 @@ void InitMods()
 		bluespheretempo = settings->getBool("BlueSpheresTempoChange");
 	}
 	else*/
-		musictramp = new Trampoline(0x5BBEA0, 0x5BBEA6, PlayMusicFile_Normal);
+	//	musictramp = new Trampoline((baseAddress + 0x1BC640), (baseAddress + 0x1BC646), PlayMusicFile_Normal);
 
 	vector<std::pair<ModInitFunc, string>> initfuncs;
 	vector<std::pair<string, string>> errors;
@@ -660,6 +661,7 @@ void InitMods()
 								for (int j = 0; j < pointers->Count; j++)
 									WriteData((void **)pointers->Pointers[j].address, pointers->Pointers[j].data);
 							RegisterEvent(modFrameEvents, module, "OnFrame");
+							RegisterEvent(modFramePostEvents, module, "OnFramePost");
 						}
 						else
 						{
@@ -706,9 +708,12 @@ void InitMods()
 
 	if (!savepath.empty())
 	{
-		WriteJump((void*)0x005ECF40, TryLoadUserFile_r);
-		WriteJump((void*)0x005ED270, TrySaveUserFile_r);
-		WriteJump((void*)0x005ED530, TryDeleteUserFile_r);
+		// TODO: NEEDS TESTING
+		WriteCall((void*)(baseAddress + 0x1BDFFF), TryLoadUserFile_r);
+		WriteCall((void*)(baseAddress + 0x1ECEAD), TryLoadUserFile_r);
+		WriteCall((void*)(baseAddress + 0x1BE022), TrySaveUserFile_r);
+		WriteCall((void*)(baseAddress + 0x1ECC77), TrySaveUserFile_r);
+		WriteCall((void*)(baseAddress + 0x1BE039), TryDeleteUserFile_r);
 	}
 
 	if (!errors.empty())
@@ -733,6 +738,7 @@ void InitMods()
 	if (patches_str.is_open())
 	{
 		CodeParser patchParser;
+		codeParser.setOffset(baseAddress);
 		static const char codemagic[6] = { 'c', 'o', 'd', 'e', 'v', '5' };
 		char buf[sizeof(codemagic)];
 		patches_str.read(buf, sizeof(buf));
@@ -779,6 +785,7 @@ void InitMods()
 	ifstream codes_str("mods\\Codes.dat", ifstream::binary);
 	if (codes_str.is_open())
 	{
+		codeParser.setOffset(baseAddress);
 		static const char codemagic[6] = { 'c', 'o', 'd', 'e', 'v', '5' };
 		char buf[sizeof(codemagic)];
 		codes_str.read(buf, sizeof(buf));
@@ -821,14 +828,13 @@ void InitMods()
 		codes_str.close();
 	}
 
-	WriteJump((void*)0x0694C974, CheckFile);
-	WriteCall((void*)0x005FD90E, ProcessCodes);
+	WriteJump((void*)(baseAddress + 0x1C540E), CheckFile);
+	WriteCall((void*)(baseAddress + 0x1FE1BE), ProcessCodes);
 
-	sub_005E2F20();
+	return sub_1CE730();
 }
 
-static const uint8_t verchk[] = { 0xE8u, 0x52, 0x58, 0xFEu, 0xFFu, 0xE8u, 0x4Du, 0xD3, 0xFEu, 0xFFu };
-static const uint8_t verchk_1422308210609141148[] = { 0xE8u, 0x72, 0x45, 0xC1u, 0x0E, 0xE8u, 0x4Du, 0xD3, 0xFEu, 0xFFu };
+static const uint8_t verchk[] = { 0xE8u, 0xC2, 0x07, 0xFDu, 0xFFu, 0x85u, 0xC0u, 0x75, 0x07u, 0xA2u };
 //E8 72 45 C1 0E E8 4D
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -838,15 +844,12 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		if (memcmp(verchk, (const char *)0x005FD6C9, sizeof(verchk)) != 0)
+		if (memcmp(verchk, (const char *)(baseAddress + 0x1FDF69), sizeof(verchk)) != 0)
 		{
-			if (memcmp(verchk, (const char *)0x005FD6C9, sizeof(verchk_1422308210609141148)) != 0)
-				MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease update Sonic Mania on Steam.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
-			else
-				MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
+			MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
 		}
 		else
-			WriteCall((void*)0x005FD6C9, InitMods);
+			WriteCall((void*)(baseAddress + 0x1FDF69), InitMods);
 		break;
 	case DLL_PROCESS_DETACH:
 		break;

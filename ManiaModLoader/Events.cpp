@@ -2,6 +2,7 @@
 #include "Events.h"
 
 std::vector<ModEvent> modFrameEvents;
+std::vector<ModEvent> modFramePostEvents;
 /**
 * Registers an event to the specified event list.
 * @param eventList The event list to add to.

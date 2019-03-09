@@ -158,7 +158,7 @@ void FileMap::scanFolder_int(const string &srcPath, int srcLen, int modIdx)
 			// Original filename.
 			string origFile = "data\\" + modFile.substr(srcLen);
 
-			if (!origFile.compare(0, 11, "data\\music\\"))
+			if (!origFile.compare(0, 11, "data\\music\\") && stricmp(GetExtension(origFile).c_str(), "pos"))
 			{
 				// Original filename should have a ".ogg" extension.
 				ReplaceFileExtension(origFile, ".ogg");

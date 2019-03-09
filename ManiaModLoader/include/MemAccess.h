@@ -8,6 +8,9 @@
 
 #include <stdint.h>
 
+static intptr_t baseAddress = (intptr_t)GetModuleHandle(nullptr);
+
+
 // Utility Functions
 #ifdef __cplusplus
 // C++ version.
@@ -179,19 +182,19 @@ static inline BOOL WriteCall(void *writeaddress, void *funcaddress)
 
 // Data pointer and array declarations.
 #define DataPointer(type, name, address) \
-	static type &name = *(type *)address
+	static type &name = *(type *)(baseAddress + address)
 #define DataArray(type, name, address, length) \
 	static type *const name = (type *)address; static const int name##_Length = length
 
 // Function pointer declarations.
 #define FunctionPointer(RETURN_TYPE, NAME, ARGS, ADDRESS) \
-	static RETURN_TYPE (__cdecl *const NAME)ARGS = (RETURN_TYPE (__cdecl *)ARGS)ADDRESS
+	static RETURN_TYPE (__cdecl *const NAME)ARGS = (RETURN_TYPE (__cdecl *)ARGS)(baseAddress + ADDRESS)
 #define StdcallFunctionPointer(RETURN_TYPE, NAME, ARGS, ADDRESS) \
-	static RETURN_TYPE (__stdcall *const NAME)ARGS = (RETURN_TYPE (__stdcall *)ARGS)ADDRESS
+	static RETURN_TYPE (__stdcall *const NAME)ARGS = (RETURN_TYPE (__stdcall *)ARGS)(baseAddress + ADDRESS)
 #define FastcallFunctionPointer(RETURN_TYPE, NAME, ARGS, ADDRESS) \
-	static RETURN_TYPE (__fastcall *const NAME)ARGS = (RETURN_TYPE (__fastcall *)ARGS)ADDRESS
+	static RETURN_TYPE (__fastcall *const NAME)ARGS = (RETURN_TYPE (__fastcall *)ARGS)(baseAddress + ADDRESS)
 #define ThiscallFunctionPointer(RETURN_TYPE, NAME, ARGS, ADDRESS) \
-	static RETURN_TYPE (__thiscall *const NAME)ARGS = (RETURN_TYPE (__thiscall *)ARGS)ADDRESS
+	static RETURN_TYPE (__thiscall *const NAME)ARGS = (RETURN_TYPE (__thiscall *)ARGS)(baseAddress + ADDRESS)
 #define VoidFunc(NAME, ADDRESS) FunctionPointer(void,NAME,(void),ADDRESS)
 
 // "Offset" Function pointer declarations.

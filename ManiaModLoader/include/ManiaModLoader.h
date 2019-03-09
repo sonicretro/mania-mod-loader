@@ -3,7 +3,7 @@
 #include "MemAccess.h"
 
 static const int ModLoaderVer = 1;
-static const int GameVer = 4;
+static const int GameVer = 5;
 
 struct PatchInfo
 {
@@ -163,45 +163,34 @@ struct PlayerData
 };
 
 // define function and variable pointers here
-DataPointer(BYTE, ReadFromPack, 0x6F1804);
-DataPointer(BYTE, ConsoleEnabled, 0x6F1806);
+DataPointer(BYTE, UseDataPack, 0x2FC865);
+DataPointer(BYTE, ConsoleEnabled, 0x2FC867);
 
-DataPointer(float, MusicVolume, 0xE4805C);
-DataPointer(PlayerData, Player1Data, 0x85E9A0);
-DataPointer(PlayerData, Player2Data, 0x85EDF8);
-DataPointer(int, TimerCentiframes, 0xE4874D);
-DataPointer(int, DebugEnabled, 0xE48768);
-DataPointer(int, UpdateTimer, 0xE48770);
-DataPointer(char, GameMode, 0xE487787);
-DataPointer(char, TimerCentiseconds, 0xE48778);
-DataPointer(char, TimerSeconds, 0xE48779);
-DataPointer(char, TimerMinutes, 0xE4877A);
+DataPointer(float, MusicVolume, 0xA53078);
+DataPointer(PlayerData, Player1Data, 0x469A10);
+DataPointer(PlayerData, Player2Data, 0x469E68);
+//DataPointer(int, TimerCentiframes, 0xE4874D);
+DataPointer(int, DebugEnabled, 0xA535D4);
+DataPointer(int, UpdateTimer, 0xA535DC);
+//DataPointer(char, GameMode, 0xE487787);
+DataPointer(char, TimerCentiseconds, 0xA535E4);
+DataPointer(char, TimerSeconds, 0xA535E5);
+DataPointer(char, TimerMinutes, 0xA535E6);
 
-// If a function has a jump function where the function is just a jump to the proper
-// function it should be used whenever possible. These usually stay in the same spots in 
-// the same general area between versions and improves the chances of future version
-// compatibility. These functions are almost always compiler generated, Hence the close
-// proximity.
-FunctionPointer(int, playWav, (_WORD wavIndex, int a2, _BYTE playLength), 0x5BBBF0);
-FunctionPointer(_WORD, loadWav, (const char *name), 0x5BBB50);
+FunctionPointer(int, PlaySoundFX, (_WORD wavIndex, int a2, _BYTE playLength), 0x1BC3890);
+//FunctionPointer(_WORD, loadWav, (const char *name), 0x5BBB50);
 
-// These functions are a special case. Their jump functions do not align between versions so we'll use their stored 
-// jump functions in a stored "offset" which does match between versions. Most functions have these as well 
-// but usually isn't needed to get a working function. To make matters worse. Some functions don't have a jump function
-// but do have an "offset". Meaning we'll need 2 different ways to get these and those for multi-version support,
-// and to make things worse. The "offsets" are dynamically set, We'll have to use them only in runtime.
-OffsetFunctionPointer(void *, spawnObject, (_WORD objectID, _DWORD type, _DWORD x, _DWORD y), 0xE9C700); // It's return is a object unique pointer to the object's memory.
-#define PrintDebug printf
-
-VoidFunc(InitPlayer, 0x4C33F0);
-FastcallFunctionPointer(int, Player_CheckGoSuper, (PlayerData *a1, int emeraldflags), 0x4C8280);
-VoidFunc(Sonic_JumpAbilities, 0x4C8630);
-VoidFunc(Tails_JumpAbilities, 0x4C8990);
-VoidFunc(Knuckles_JumpAbilities, 0x4C8A70);
-VoidFunc(Mighty_JumpAbilities, 0x4C8B70);
-VoidFunc(Ray_JumpAbilities, 0x4C8DF0);
-VoidFunc(Sonic_CheckDoPeelOut, 0x4C8FF0);
-VoidFunc(ERZSuperSonic_JumpAbilities, 0x4C2340);
-FastcallFunctionPointer(void, HashFilename, (char *filename, int *hash), 0x5CAE80); // Incorrect address on version 1.05.0713 (Before Patch).
-VoidFunc(MainGameLoop, 0x5C7540); 
+#define PrintDebug printf // TODO: Find PrintDebug
+//
+//VoidFunc(InitPlayer, 0x4C33F0);
+//FastcallFunctionPointer(int, Player_CheckGoSuper, (PlayerData *a1, int emeraldflags), 0x4C8280);
+//VoidFunc(Sonic_JumpAbilities, 0x4C8630);
+//VoidFunc(Tails_JumpAbilities, 0x4C8990);
+//VoidFunc(Knuckles_JumpAbilities, 0x4C8A70);
+//VoidFunc(Mighty_JumpAbilities, 0x4C8B70);
+//VoidFunc(Ray_JumpAbilities, 0x4C8DF0);
+//VoidFunc(Sonic_CheckDoPeelOut, 0x4C8FF0);
+//VoidFunc(ERZSuperSonic_JumpAbilities, 0x4C2340);
+//FastcallFunctionPointer(void, HashFilename, (char *filename, int *hash), 0x5CAE80); // Incorrect address on version 1.05.0713 (Before Patch).
+VoidFunc(MainGameLoop, 0x1C7CE0);
 //VoidFunc(IncrementTimer, 0x5C74E0);
