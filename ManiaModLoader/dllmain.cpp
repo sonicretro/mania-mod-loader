@@ -572,7 +572,7 @@ int InitMods()
 		bluespheretempo = settings->getBool("BlueSpheresTempoChange");
 	}
 	else*/
-	//	musictramp = new Trampoline((baseAddress + 0x1BC640), (baseAddress + 0x1BC646), PlayMusicFile_Normal);
+		musictramp = new Trampoline((baseAddress + 0x1BC640), (baseAddress + 0x1BC646), PlayMusicFile_Normal);
 
 	vector<std::pair<ModInitFunc, string>> initfuncs;
 	vector<std::pair<string, string>> errors;

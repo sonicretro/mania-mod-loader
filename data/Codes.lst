@@ -1,3 +1,62 @@
 Code "P1 Infinite Rings"
-write16 469AD4 999
+write16 00469AD4 999
 
+Code "P2 Infinite Rings"
+write16 00469F2C 999
+
+Code "P3 Infinite Rings"
+write16 0046A384 999
+
+Code "P4 Infinite Rings"
+write16 0046A7DC 999
+
+Code "Infinite Lives"
+write8 00469AE0 99
+
+Code "P1 Always Have Combine Ring"
+write8 00469AEC 1
+
+Code "P2 Always Have Combine Ring"
+write8 00469F44 1
+
+Code "Enable Debug Mode"
+write8 00A535D4 1
+
+;Code "P1 Has Sonic's Abilities"
+;write32 00469BDC 0x000C8630
+
+;Code "P1 Has Tails' Abilities"
+;write32 00469BDC 0x000C8990
+
+;Code "P1 Has Knuckles' Abilities"
+;write32 00469BDC 0x000CBA70
+
+;Code "P1 Has Mighty's Abilities"
+;write32 00469BDC 0x000C8B70
+
+;Code "P1 Has Ray's Abilities"
+;write32 00469BDC 0x000C8DF0
+
+;Code "P1 Has ERZ Super Sonic's Abilities"
+;write32 00469BDC 0x000C2340
+
+;Code "P2 Has Sonic's Abilities"
+;write32 0046A034 0x000C8630
+
+;Code "P2 Has Tails' Abilities"
+;write32 0046A034 0x000C8990
+
+;Code "P2 Has Knuckles' Abilities"
+;write32 0046A034 0x000CBA70
+
+;Code "P2 Has Mighty's Abilities"
+;write32 0046A034 0x000C8B70
+
+;Code "P2 Has Ray's Abilities"
+;write32 0046A034 0x000C8DF0
+
+;Code "P2 Has ERZ Super Sonic's Abilities"
+;write32 0046A034 0x000C2340
+
+Patch "Disable Background Pausing"
+writenop 001FE1CA 2
