@@ -180,7 +180,8 @@ DataPointer(char, TimerMinutes, 0xA535E6);
 FunctionPointer(int, PlaySoundFX, (_WORD wavIndex, int a2, _BYTE playLength), 0x1BC3890);
 OffsetFunctionPointer(_WORD, loadWav, (const char *name), 0xAA7960);
 
-FunctionPointer(int, PrintDebug, (const char* fmt, ...), 0x1280);
+//FunctionPointer(int, PrintDebug, (const char* fmt, ...), 0x1280);
+#define PrintDebug printf
 //
 //VoidFunc(InitPlayer, 0x4C33F0);
 //FastcallFunctionPointer(int, Player_CheckGoSuper, (PlayerData *a1, int emeraldflags), 0x4C8280);

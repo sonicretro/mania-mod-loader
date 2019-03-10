@@ -184,7 +184,7 @@ static inline BOOL WriteCall(void *writeaddress, void *funcaddress)
 #define DataPointer(type, name, address) \
 	static type &name = *(type *)(baseAddress + address)
 #define DataArray(type, name, address, length) \
-	static type *const name = (type *)address; static const int name##_Length = length
+	static type *const name = (type *)(baseAddress + address); static const int name##_Length = length
 
 // Function pointer declarations.
 #define FunctionPointer(RETURN_TYPE, NAME, ARGS, ADDRESS) \
