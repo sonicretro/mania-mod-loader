@@ -22,41 +22,72 @@ write8 00469F44 1
 Code "Enable Debug Mode"
 write8 00A535D4 1
 
-;Code "P1 Has Sonic's Abilities"
-;write32 00469BDC 0x000C8630
+Code "P1 Has Sonic's Abilities"
+writeoff 00469BDC 0x000C8630
 
-;Code "P1 Has Tails' Abilities"
-;write32 00469BDC 0x000C8990
+Code "P1 Has Tails' Abilities"
+writeoff 00469BDC 0x000C8990
 
-;Code "P1 Has Knuckles' Abilities"
-;write32 00469BDC 0x000CBA70
+Code "P1 Has Knuckles' Abilities"
+writeoff 00469BDC 0x000CBA70
 
-;Code "P1 Has Mighty's Abilities"
-;write32 00469BDC 0x000C8B70
+Code "P1 Has Mighty's Abilities"
+writeoff 00469BDC 0x000C8B70
 
-;Code "P1 Has Ray's Abilities"
-;write32 00469BDC 0x000C8DF0
+Code "P1 Has Ray's Abilities"
+writeoff 00469BDC 0x000C8DF0
 
-;Code "P1 Has ERZ Super Sonic's Abilities"
-;write32 00469BDC 0x000C2340
+Code "P1 Has ERZ Super Sonic's Abilities"
+writeoff 00469BDC 0x000C2340
 
-;Code "P2 Has Sonic's Abilities"
-;write32 0046A034 0x000C8630
+Code "P2 Has Sonic's Abilities"
+writeoff 0046A034 0x000C8630
 
-;Code "P2 Has Tails' Abilities"
-;write32 0046A034 0x000C8990
+Code "P2 Has Tails' Abilities"
+writeoff 0046A034 0x000C8990
 
-;Code "P2 Has Knuckles' Abilities"
-;write32 0046A034 0x000CBA70
+Code "P2 Has Knuckles' Abilities"
+writeoff 0046A034 0x000CBA70
 
-;Code "P2 Has Mighty's Abilities"
-;write32 0046A034 0x000C8B70
+Code "P2 Has Mighty's Abilities"
+writeoff 0046A034 0x000C8B70
 
-;Code "P2 Has Ray's Abilities"
-;write32 0046A034 0x000C8DF0
+Code "P2 Has Ray's Abilities"
+writeoff 0046A034 0x000C8DF0
 
-;Code "P2 Has ERZ Super Sonic's Abilities"
-;write32 0046A034 0x000C2340
+Code "P2 Has ERZ Super Sonic's Abilities"
+writeoff 0046A034 0x000C2340
+
+Code "Super Forms Can Be Canceled"
+ifeq8 00469B34 2
+	ifeq8 00469BD8 1
+		ifeq8 00441738 1
+			write8 00469B34 3
+		endif
+	endif
+	writenop 0005317A 2
+else
+	write16 0005317A 0x487D
+endif
+
+Code "P1 Have Bubble Shield Effects (No Protection)"
+write8 00469ADC 2
+
+Code "P1 Have Flame Shield Effects (No Protection)"
+write8 00469ADC 3
+
+Code "P1 Have Lightning Shield Effects (No Protection)"
+write8 00469ADC 4
+
+Code "P2 Have Bubble Shield Effects (No Protection)"
+write8 00469F34 2
+
+Code "P2 Have Flame Shield Effects (No Protection)"
+write8 00469F34 3
+
+Code "P2 Have Lightning Shield Effects (No Protection)"
+write8 00469F34 4
 
 Patch "Disable Background Pausing"
-writenop 001FE1CA 2
+;writenop 001FE1CA 2
+write8 001FE5F0 0xEB
