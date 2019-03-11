@@ -163,35 +163,35 @@ struct PlayerData
 };
 
 // define function and variable pointers here
-DataPointer(BYTE, UseDataPack, 0x2FC865);
-DataPointer(BYTE, ConsoleEnabled, 0x2FC867);
+DataPointer(bool, UseDataPack, 0x002FC865);
+DataPointer(bool, ConsoleEnabled, 0x002FC867);
 
-DataPointer(float, MusicVolume, 0xA53078);
-DataPointer(PlayerData, Player1Data, 0x469A10);
-DataPointer(PlayerData, Player2Data, 0x469E68);
-//DataPointer(int, TimerCentiframes, 0xE4874D);
-DataPointer(int, DebugEnabled, 0xA535D4);
-DataPointer(int, UpdateTimer, 0xA535DC);
-//DataPointer(char, GameMode, 0xE487787);
-DataPointer(char, TimerCentiseconds, 0xA535E4);
-DataPointer(char, TimerSeconds, 0xA535E5);
-DataPointer(char, TimerMinutes, 0xA535E6);
+DataPointer(float, MusicVolume, 0x00A53078);
+DataPointer(PlayerData, Player1Data, 0x00469A10);
+DataPointer(PlayerData, Player2Data, 0x00469E68);
+DataPointer(int, TimerCentiframes, 0x00A535B8);
+DataPointer(int, DebugEnabled, 0x00A535D4);
+DataPointer(int, UpdateTimer, 0x00A535DC);
+DataPointer(char, GameMode, 0x00A535E2);
+DataPointer(char, TimerCentiseconds, 0x00A535E4);
+DataPointer(char, TimerSeconds, 0x00A535E5);
+DataPointer(char, TimerMinutes, 0x00A535E6);
 
 FunctionPointer(int, PlaySoundFX, (_WORD wavIndex, int a2, _BYTE playLength), 0x1BC3890);
-OffsetFunctionPointer(_WORD, loadWav, (const char *name), 0xAA7960);
+FunctionPointer(_WORD, loadWav, (const char *name), 0x1BC2F0);
 
 //FunctionPointer(int, PrintDebug, (const char* fmt, ...), 0x1280);
 #define PrintDebug printf
 //
-//VoidFunc(InitPlayer, 0x4C33F0);
-//FastcallFunctionPointer(int, Player_CheckGoSuper, (PlayerData *a1, int emeraldflags), 0x4C8280);
-//VoidFunc(Sonic_JumpAbilities, 0x4C8630);
-//VoidFunc(Tails_JumpAbilities, 0x4C8990);
-//VoidFunc(Knuckles_JumpAbilities, 0x4C8A70);
-//VoidFunc(Mighty_JumpAbilities, 0x4C8B70);
-//VoidFunc(Ray_JumpAbilities, 0x4C8DF0);
-//VoidFunc(Sonic_CheckDoPeelOut, 0x4C8FF0);
-//VoidFunc(ERZSuperSonic_JumpAbilities, 0x4C2340);
-//FastcallFunctionPointer(void, HashFilename, (char *filename, int *hash), 0x5CAE80); // Incorrect address on version 1.05.0713 (Before Patch).
-VoidFunc(MainGameLoop, 0x1C7CE0);
-//VoidFunc(IncrementTimer, 0x5C74E0);
+VoidFunc(InitPlayer, 0x000C33F0);
+FastcallFunctionPointer(int, Player_CheckGoSuper, (PlayerData *player, int emeraldflags), 0x4C8280);
+VoidFunc(Sonic_JumpAbilities, 0x000C8630);
+VoidFunc(Tails_JumpAbilities, 0x000C8990);
+VoidFunc(Knuckles_JumpAbilities, 0x000CBA70);
+VoidFunc(Mighty_JumpAbilities, 0x000C8B70);
+VoidFunc(Ray_JumpAbilities, 0x000C8DF0);
+VoidFunc(Sonic_CheckDoPeelOut, 0x000C8FF0);
+VoidFunc(ERZSuperSonic_JumpAbilities, 0x000C2340);
+FastcallFunctionPointer(void, HashFilename, (char *filename, int *hash), 0x1CB620);
+VoidFunc(MainGameLoop, 0x001C7CE0);
+VoidFunc(IncrementTimer, 0x001F2600);

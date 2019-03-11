@@ -13,6 +13,12 @@ write16 0046A7DC 999
 Code "Infinite Lives"
 write8 00469AE0 99
 
+Patch "Freeze Timer"
+writenop 001F2613 6
+
+Patch "Ignore Damage"
+write8 000C5970 0xC3
+
 Code "P1 Always Have Combine Ring"
 write8 00469AEC 1
 
@@ -21,6 +27,41 @@ write8 00469F44 1
 
 Code "Enable Debug Mode"
 write8 00A535D4 1
+
+Patch "Enable Insta-Shield and Drop Dash"
+writenop 000C86FD 2
+
+;Code "Enable Super Peel-Out"
+;writenop 000C35BA 2
+;ifgtu8 00A535C4 8
+;	ifltu8 00A535C4 79
+;		writeoff 00469BE0 0x000C8FF0
+;		writeoff 0046A038 0x000C8FF0
+;	endif
+;endif
+
+;Patch "Disable Super Peel-Out Animation"
+;write16 004C35BC 0x62EB
+
+Code "Super Forms Can Fly"
+write8 p00AA763C|00441790 2
+
+Patch "Super Dash Costs No Rings"
+writenop 000C2445 6
+
+Patch "Remove Super Dash Cooldown"
+write8 000C24F8 0x00
+
+Patch "Enable Super With No Emeralds"
+writenop 000C82F6 2
+writenop 00053188 2
+
+Patch "Enable Super With 1 Ring"
+write8 000C82FE 1
+write8 00053170 1
+
+Patch "Prevent Super From Draining Rings"
+writenop 000C7673 6
 
 Code "P1 Has Sonic's Abilities"
 writeoff 00469BDC 0x000C8630
@@ -88,6 +129,30 @@ write8 00469F34 3
 Code "P2 Have Lightning Shield Effects (No Protection)"
 write8 00469F34 4
 
+Patch "Disable Bonus Warps from Checkpoints"
+write8 0005B3A7 0xEB
+
+Patch "Special Stage: Don't Lose Rings With Time"
+write8 0009E639 0xEB
+
+Patch "Special Stage: Spikes Does Nothing"
+write8 0019E304 0xEB
+
+Patch "Special Stage: Bombs Does Nothing"
+write8 0019E414 0xE9
+write32 0019E415 0xA2
+
+Patch "Special Stage: Grass Has No Effect"
+write8 00096FB2 0xEB
+
+Patch "Special Stage: Start at Mach 3"
+write8 0009D8A1 0x02
+
+Code "Disable Super Music"
+write8 p00AA763C|00441798 0
+
+Code "Enable Max Control"
+write8 p00AA763C|000410B4 0x0D
+
 Patch "Disable Background Pausing"
-;writenop 001FE1CA 2
 write8 001FE5F0 0xEB
