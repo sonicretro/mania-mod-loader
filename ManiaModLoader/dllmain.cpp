@@ -276,6 +276,16 @@ static void ReleaseCurrentTrack()
 	}
 }
 
+static void ContinueLastTrack()
+{
+	basschan = lastbasschan;
+	lastbasschan = 0;
+	loopPoint = lastlooppoint;
+	musicbuf = lastmusicbuf;
+	lastmusicbuf = nullptr;
+	BASS_ChannelPlay(basschan, FALSE);
+}
+
 static void __stdcall LoopTrack(HSYNC handle, DWORD channel, DWORD data, void *user)
 {
 	BASS_ChannelSetPosition(channel, loopPoint, BASS_POS_BYTE);
@@ -327,6 +337,11 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int slot, int a3, unsigned i
 		one_up = false;
 		if (lastoneup && !_stricmp(name, lastsong))
 		{
+			if (lastbasschan)
+			{
+				ReleaseCurrentTrack();
+				ContinueLastTrack();
+			}
 			lastoneup = false;
 			stru_26B818[slot].playStatus = 2;
 			return slot;
