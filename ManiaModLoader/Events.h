@@ -4,6 +4,7 @@
 #include <vector>
 
 extern std::vector<ModEvent> modFrameEvents;
+extern std::vector<ModEvent> modFramePostEvents;
 
 /**
 * Calls all registered events in the specified event list.

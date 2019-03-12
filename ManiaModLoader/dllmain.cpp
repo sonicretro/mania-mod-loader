@@ -28,6 +28,8 @@ using std::unordered_map;
 
 #define STATUS_OK 200
 
+static bool SteamProtected = false;
+
 /**
 * Change write protection of the .trace section.
 * @param protect True to protect; false to unprotect.
@@ -68,11 +70,11 @@ int CheckFile_i(char *buf)
 		strncpy(buf, tmp, MAX_PATH);
 		return 1;
 	}
-	return !ReadFromPack;
+	return !UseDataPack;
 }
 
-int loc_694C98D = 0x0694C98D;
-int loc_694C97D = 0x0694C97D;
+int loc_LoadFile = (baseAddress + 0x1C5427);
+int loc_LoadDataPack = (baseAddress + 0x1C5417);
 __declspec(naked) void CheckFile()
 {
 	__asm
@@ -83,9 +85,9 @@ __declspec(naked) void CheckFile()
 		add esp, 4
 		test eax, eax
 		jnz blah
-		jmp loc_694C97D
+		jmp loc_LoadDataPack
 	blah:
-		jmp loc_694C98D
+		jmp loc_LoadFile
 	}
 }
 
@@ -136,8 +138,13 @@ struct MusicInfo
 	int field_264;
 };
 
+struct VGMStreamLoopPos
+{
+	int start;
+	int end;
+};
 
-void *DecryptBytes_ptr = (void*)0x005C4EF0;
+void *DecryptBytes_ptr = (void*)(baseAddress + 0x001C5690);
 int DecryptBytes(fileinfo *file, void *buffer, int bufferSize)
 {
 	int result;
@@ -153,7 +160,7 @@ int DecryptBytes(fileinfo *file, void *buffer, int bufferSize)
 }
 
 
-void *LoadFile_ptr = (void*)0x005C4C20;
+void *LoadFile_ptr = (void*)(baseAddress + 0x001C53C0);
 int LoadFile(char *filename, fileinfo *info, void* unknown)
 {
 	int result;
@@ -171,7 +178,7 @@ int LoadFile(char *filename, fileinfo *info, void* unknown)
 
 int ReadBytesFromFile(fileinfo* file, void* buffer, int bytes)
 {
-	int bytesRead = (*(decltype(fread)**)0x076AD088)(buffer, 1, bytes, file->File);
+	int bytesRead = (*(decltype(fread)**)(baseAddress + 0x00243474))(buffer, 1, bytes, file->File);
 	if (file->IsEncrypted)
 		DecryptBytes(file, buffer, bytes);
 	return bytesRead;
@@ -193,7 +200,7 @@ inline int ReadFileData(void *buffer, fileinfo *a2, unsigned int _size)
 	return result;
 }*/
 
-DataArray(struct_0, stru_D79CA0, 0xD79CA0, 16);
+DataArray(struct_0, stru_26B818, 0x0026B818, 16);
 DWORD basschan;
 QWORD loopPoint;
 char *musicbuf = nullptr;
@@ -203,6 +210,9 @@ QWORD lastlooppoint;
 char *lastmusicbuf = nullptr;
 int oldsong = -1;
 char oldstatus = 0;
+char* lastsong = new char[MAX_PATH];
+bool lastoneup = false;
+
 /**
 * BASS callback: Current track has ended.
 * @param handle
@@ -230,7 +240,50 @@ static void __stdcall onTrackEnd(HSYNC handle, DWORD channel, DWORD data, void *
 		one_up = false;
 	}
 	else if (oldsong != -1)
-		oldstatus = stru_D79CA0[oldsong].playStatus = 0;
+		oldstatus = stru_26B818[oldsong].playStatus = 0;
+}
+
+static void ReleaseLastTrack()
+{
+	if (lastbasschan != 0)
+	{
+		BASS_ChannelStop(lastbasschan);
+		BASS_StreamFree(lastbasschan);
+		if (lastmusicbuf)
+		{
+			delete[] lastmusicbuf;
+			lastmusicbuf = nullptr;
+		}
+		lastmusicbuf = nullptr;
+		lastbasschan = 0;
+		one_up = false;
+	}
+}
+
+static void ReleaseCurrentTrack()
+{
+	if (basschan != 0)
+	{
+		BASS_ChannelStop(basschan);
+		BASS_StreamFree(basschan);
+		if (lastmusicbuf)
+		{
+			delete[] musicbuf;
+			musicbuf = nullptr;
+		}
+		musicbuf = nullptr;
+		basschan = 0;
+	}
+}
+
+static void ContinueLastTrack()
+{
+	basschan = lastbasschan;
+	lastbasschan = 0;
+	loopPoint = lastlooppoint;
+	musicbuf = lastmusicbuf;
+	lastmusicbuf = nullptr;
+	BASS_ChannelPlay(basschan, FALSE);
 }
 
 static void __stdcall LoopTrack(HSYNC handle, DWORD channel, DWORD data, void *user)
@@ -242,10 +295,10 @@ bool enablevgmstream;
 bool bluespheretempo = false;
 int bluespheretime = -1;
 
-int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int loopstart, int a5)
+int __cdecl PlayMusicFile_BASS(char *name, unsigned int slot, int a3, unsigned int loopstart, bool createThread)
 {
 	//PrintDebug("PlayMusicFile_BASS(\"%s\", %u, %d, %u, %d);\n", name, a2, a3, loopstart, a5);
-	if (stru_D79CA0[a2].playStatus == 3)
+	if (stru_26B818[slot].playStatus == 3)
 		return -1;
 	string namestr = name;
 	std::transform(namestr.begin(), namestr.end(), namestr.begin(), tolower);
@@ -282,27 +335,21 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int
 	else
 	{
 		one_up = false;
-		if (basschan != 0)
+		if (lastoneup && !_stricmp(name, lastsong))
 		{
-			BASS_ChannelStop(basschan);
-			BASS_StreamFree(basschan);
-			basschan = 0;
+			if (lastbasschan)
+			{
+				ReleaseCurrentTrack();
+				ContinueLastTrack();
+			}
+			lastoneup = false;
+			stru_26B818[slot].playStatus = 2;
+			return slot;
 		}
-		if (musicbuf)
+		else
 		{
-			delete[] musicbuf;
-			musicbuf = nullptr;
-		}
-		if (lastbasschan != 0)
-		{
-			BASS_ChannelStop(lastbasschan);
-			BASS_StreamFree(lastbasschan);
-			lastbasschan = 0;
-		}
-		if (lastmusicbuf)
-		{
-			delete[] lastmusicbuf;
-			lastmusicbuf = nullptr;
+			ReleaseCurrentTrack();
+			ReleaseLastTrack();
 		}
 	}
 	bool useloop = false;
@@ -311,46 +358,59 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int
 	strncat(buf, name, MAX_PATH);
 	string newname = fileMap.replaceFile(buf);
 	string ext = GetExtension(newname);
-	if (ReadFromPack && newname == buf)
+	if (UseDataPack && newname == buf)
 	{
 		fileinfo fi;
-		if (LoadFile(buf, &fi, buf) == 1)
- 		memset(&fi, 0, sizeof(fileinfo));
+		memset(&fi, 0, sizeof(fileinfo));
 		if (LoadFile(buf, &fi, buf))
 		{
 			musicbuf = new char[fi.FileSize];
 			ReadBytesFromFile(&fi, musicbuf, fi.FileSize);
 			if (fi.File)
 			{
-				(*(decltype(fclose)**)0x076AD07C)(fi.File);
+				(*(decltype(fclose)**)(baseAddress + 0x002434B0))(fi.File);
 				fi.File = nullptr;
 			}
 			useloop = loopstart > 0;
-			//basschan = BASS_StreamCreateFile(TRUE, musicbuf, 0, fi.FileSize, BASS_STREAM_DECODE | (useloop ? BASS_SAMPLE_LOOP : 0));
+			basschan = BASS_StreamCreateFile(TRUE, musicbuf, 0, fi.FileSize, BASS_STREAM_DECODE | (useloop ? BASS_SAMPLE_LOOP : 0));
 		}
 	}
 	else
 	{
-		if (ext != "ogg" && ext != "mp3")
-			basschan = BASS_VGMSTREAM_StreamCreate(newname.c_str(), BASS_STREAM_DECODE);
+		if (ext != "ogg" && ext != "mp3" && ext != "wav")
+			basschan = BASS_VGMSTREAM_StreamCreate(newname.c_str(), BASS_STREAM_DECODE | (useloop ? BASS_SAMPLE_LOOP : 0));
 		if (basschan == 0)
 		{
 			useloop = loopstart > 0;
 			basschan = BASS_StreamCreateFile(FALSE, newname.c_str(), 0, 0, BASS_STREAM_DECODE | (useloop ? BASS_SAMPLE_LOOP : 0));
+		}
+
+		ReplaceFileExtension(newname, ".pos");
+		if (Exists(newname))
+		{
+			FILE* handle = fopen(newname.c_str(), "rb");
+			if (handle)
+			{
+				VGMStreamLoopPos loopfile;
+				fread(&loopfile, 1, 8, handle);
+				fclose(handle);
+				loopstart = loopfile.start;
+				useloop = loopstart > 0;
+			}
 		}
 	}
 	if (basschan != 0)
 	{
 		basschan = BASS_FX_TempoCreate(basschan, BASS_FX_FREESOURCE);
 		// Stream opened!
-		stru_D79CA0[a2].anonymous_0 = *(int*)0xD7BEF0;
-		stru_D79CA0[a2].anonymous_4 = *(int*)0xD7BEF4;
-		*(_DWORD *)&stru_D79CA0[a2].anonymous_8 = 0x3FF00FF;
-		stru_D79CA0[a2].hasLoop = useloop;
-		stru_D79CA0[a2].anonymous_5 = 0;
-		stru_D79CA0[a2].volume = 1;
-		stru_D79CA0[a2].anonymous_1 = 0;
-		stru_D79CA0[a2].anonymous_3 = 0x10000;
+		stru_26B818[slot].anonymous_0 = *(int*)(baseAddress + 0x00A5CC88);
+		stru_26B818[slot].anonymous_4 = *(int*)(baseAddress + 0x00A5CC8C);
+		*(_DWORD *)&stru_26B818[slot].anonymous_8 = 0x3FF00FF;
+		stru_26B818[slot].hasLoop = useloop;
+		stru_26B818[slot].anonymous_5 = 0;
+		stru_26B818[slot].volume = 1;
+		stru_26B818[slot].anonymous_1 = 0;
+		stru_26B818[slot].anonymous_3 = 0x10000;
 		BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, 0.5f * MusicVolume);
 		BASS_ChannelPlay(basschan, false);
 		if (useloop)
@@ -360,14 +420,18 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int a2, int a3, unsigned int
 		}
 		else
 			BASS_ChannelSetSync(basschan, BASS_SYNC_END, 0, onTrackEnd, nullptr);
-		stru_D79CA0[a2].playStatus = 2;
+		if (!_stricmp(name, "1up.ogg"))
+			lastoneup = true;
+		else
+			strcpy(lastsong, name);
+		stru_26B818[slot].playStatus = 2;
 		if (bluespheretempo && !_stricmp(name, "bluespheresspd.ogg"))
 			bluespheretime = 0;
 		else
 			bluespheretime = -1;
-		return a2;
+		return slot;
 	}
-	stru_D79CA0[a2].playStatus = 0;
+	stru_26B818[slot].playStatus = 0;
 	return -1;
 }
 
@@ -381,18 +445,18 @@ void SlowDownMusic()
 	BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, 0);
 }
 
-VoidFunc(sub_5BC220, 0x5BC220);
-void ResumeSound()
+VoidFunc(ResumeSound, 0x001BC9C0);
+void ResumeSound_BASS()
 {
 	BASS_ChannelPlay(basschan, false);
-	sub_5BC220();
+	ResumeSound();
 }
 
-VoidFunc(sub_5BC1C0, 0x5BC1C0);
-void PauseSound()
+VoidFunc(PauseSound, 0x001BC960);
+void PauseSound_BASS()
 {
 	BASS_ChannelPause(basschan);
-	sub_5BC1C0();
+	PauseSound();
 }
 
 // Code Parser.
@@ -400,7 +464,7 @@ static CodeParser codeParser;
 
 float bluespheretempos[]{ 0, 8.6956521739130434782608f, 19.047619047619047619f, 31.578947368421052631f, 47.0588235294117647f };
 
-DataPointer(MusicInfo *, MusicSlots, 0xEBBDA0);
+DataPointer(MusicInfo *, MusicSlots, 0xAC6E08);
 static void __cdecl ProcessCodes()
 {
 	codeParser.processCodeList();
@@ -410,7 +474,7 @@ static void __cdecl ProcessCodes()
 		int song = MusicSlots->CurrentSong;
 		if (song != -1)
 		{
-			char status = stru_D79CA0[song].playStatus;
+			char status = stru_26B818[song].playStatus;
 			if (song == oldsong && status != oldstatus)
 				switch (status)
 				{
@@ -431,7 +495,7 @@ static void __cdecl ProcessCodes()
 #endif
 				}
 			oldstatus = status;
-			BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, stru_D79CA0[song].volume * 0.5f * MusicVolume);
+			BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, stru_26B818[song].volume * 0.5f * MusicVolume);
 			if (bluespheretime != -1 && bluespheretime < 7200 && status == 2 && ++bluespheretime % 1800 == 0)
 				BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, bluespheretempos[bluespheretime / 1800]);
 		}
@@ -440,6 +504,7 @@ static void __cdecl ProcessCodes()
 		oldsong = song;
 	}
 	MainGameLoop();
+	RaiseEvents(modFramePostEvents);
 }
 
 string savepath;
@@ -504,15 +569,23 @@ static vector<wstring> split(const wstring &s, wchar_t delim)
 	return elems;
 }
 
-VoidFunc(sub_005E2F20, 0x005E2F20);
-void InitMods()
+FunctionPointer(int, sub_1CE730, (), 0x1CE730);
+int InitMods()
 {
+	int result = sub_1CE730();
 	HookDirect3D();
+	if (ConsoleEnabled)
+	{
+		// Sends output from stdout to the console
+		freopen("CONOUT$", "w", stdout);
+		// Tells Mania to send the output to stdout instead of the Debugger
+		WriteData((bool*)(baseAddress + 0x0026BB1B), true);
+	}
 	FILE *f_ini = _wfopen(L"mods\\ManiaModLoader.ini", L"r");
 	if (!f_ini)
 	{
 		MessageBox(nullptr, L"mods\\ManiaModLoader.ini could not be read!", L"Mania Mod Loader", MB_ICONWARNING);
-		return;
+		return result;
 	}
 	unique_ptr<IniFile> ini(new IniFile(f_ini));
 	fclose(f_ini);
@@ -549,29 +622,34 @@ void InitMods()
 		PrintDebug("%s\n", MODLOADER_GIT_VERSION);
 #endif /* MODLOADER_GIT_DESCRIBE */
 #endif /* MODLOADER_GIT_VERSION */
+		if (SteamProtected)
+			PrintDebug("\nNOTE: Steam Stub DRM Detected!\n\n");
 	}
 
 	bool speedshoestempo = false;
-	/*if (enablevgmstream = (bool)BASS_Init(-1, 44100, 0, nullptr, nullptr))
+	if (enablevgmstream = (bool)BASS_Init(-1, 44100, 0, nullptr, nullptr))
 	{
-		WriteJump((void*)0x5BBEA0, PlayMusicFile_BASS);
-		WriteData((char*)0x5BC280, (char)0xC3);
+		WriteJump((void*)(baseAddress + 0x001BC640), PlayMusicFile_BASS);
+		WriteData((char*)(baseAddress + 0x001BCA20), (char)0xC3);
 		//WriteData((char*)0x4016A9, (char)0xB8);//
 		//WriteData((int*)0x4016AA, 1);//
 		//WriteJump((void*)0x4016AE, (void*)0x4016C3);//
 		//WriteData((char*)0x401AD9, (char)0xEB);//
 		//WriteJump((void*)0x401B7A, (void*)0x401BB4);//
 		//WriteJump((void*)0x401C1D, (void*)0x401C39);//
-		WriteCall((void*)0x5FDE53, PauseSound);
-		WriteCall((void*)0x5FDE74, ResumeSound);
+		WriteJump((void*)(baseAddress + 0x001C8705), PauseSound_BASS);
+		WriteCall((void*)(baseAddress + 0x001FE743), PauseSound_BASS);
+		WriteJump((void*)(baseAddress + 0x001C8727), ResumeSound_BASS);
+		WriteCall((void*)(baseAddress + 0x001FE764), ResumeSound_BASS);
 		//WriteCall((void*)0x5CAE95, PauseSound);
 		//WriteCall((void*)0x5CAEB6, ResumeSound);
-		//WriteData((char*)0x005FCD6F, (char)0xEB);
+		WriteData((char*)(baseAddress + 0x001FD61F), (char)0xEB);
+		WriteData((char*)(baseAddress + 0x001BC5AE), (char)0xEB);
 		speedshoestempo = settings->getBool("SpeedShoesTempoChange");
 		bluespheretempo = settings->getBool("BlueSpheresTempoChange");
 	}
-	else*/
-		musictramp = new Trampoline(0x5BBEA0, 0x5BBEA6, PlayMusicFile_Normal);
+	else
+		musictramp = new Trampoline((baseAddress + 0x1BC640), (baseAddress + 0x1BC646), PlayMusicFile_Normal);
 
 	vector<std::pair<ModInitFunc, string>> initfuncs;
 	vector<std::pair<string, string>> errors;
@@ -660,6 +738,7 @@ void InitMods()
 								for (int j = 0; j < pointers->Count; j++)
 									WriteData((void **)pointers->Pointers[j].address, pointers->Pointers[j].data);
 							RegisterEvent(modFrameEvents, module, "OnFrame");
+							RegisterEvent(modFramePostEvents, module, "OnFramePost");
 						}
 						else
 						{
@@ -698,17 +777,20 @@ void InitMods()
 			savepath = mod_dirA + "\\savedata";
 	}
 
-	/*if (speedshoestempo)
+	if (speedshoestempo)
 	{
-		WriteCall((void*)0x43DCE6, SpeedUpMusic);
-		WriteCall((void*)0x47EA16, SlowDownMusic);
-	}*/
+		WriteCall((void*)(baseAddress + 0x000A8C08), SpeedUpMusic);
+		WriteCall((void*)(baseAddress + 0x000C27E8), SlowDownMusic);
+	}
 
 	if (!savepath.empty())
 	{
-		WriteJump((void*)0x005ECF40, TryLoadUserFile_r);
-		WriteJump((void*)0x005ED270, TrySaveUserFile_r);
-		WriteJump((void*)0x005ED530, TryDeleteUserFile_r);
+		// TODO: NEEDS TESTING
+		WriteCall((void*)(baseAddress + 0x1BDFFF), TryLoadUserFile_r);
+		WriteCall((void*)(baseAddress + 0x1ECEAD), TryLoadUserFile_r);
+		WriteCall((void*)(baseAddress + 0x1BE022), TrySaveUserFile_r);
+		WriteCall((void*)(baseAddress + 0x1ECC77), TrySaveUserFile_r);
+		WriteCall((void*)(baseAddress + 0x1BE039), TryDeleteUserFile_r);
 	}
 
 	if (!errors.empty())
@@ -733,6 +815,7 @@ void InitMods()
 	if (patches_str.is_open())
 	{
 		CodeParser patchParser;
+		patchParser.setOffset(baseAddress);
 		static const char codemagic[6] = { 'c', 'o', 'd', 'e', 'v', '5' };
 		char buf[sizeof(codemagic)];
 		patches_str.read(buf, sizeof(buf));
@@ -779,6 +862,7 @@ void InitMods()
 	ifstream codes_str("mods\\Codes.dat", ifstream::binary);
 	if (codes_str.is_open())
 	{
+		codeParser.setOffset(baseAddress);
 		static const char codemagic[6] = { 'c', 'o', 'd', 'e', 'v', '5' };
 		char buf[sizeof(codemagic)];
 		codes_str.read(buf, sizeof(buf));
@@ -821,14 +905,23 @@ void InitMods()
 		codes_str.close();
 	}
 
-	WriteJump((void*)0x0694C974, CheckFile);
-	WriteCall((void*)0x005FD90E, ProcessCodes);
+	WriteJump((void*)(baseAddress + 0x1C540E), CheckFile);
+	WriteCall((void*)(baseAddress + 0x1FE1BE), ProcessCodes);
+	return result;
+}
+HMODULE COMCTL32 = LoadLibraryA("comctl32");
 
-	sub_005E2F20();
+// I know, This is horrible, This is only here to allow the modloader to run with the protected exe
+void InitProtected()
+{
+	WriteData((BYTE*)GetProcAddress(COMCTL32, "InitCommonControls"), (BYTE)0x90);
+	SteamProtected = true;
+	WriteCall((void*)(baseAddress + 0x1FDF69), InitMods);
+	return;
 }
 
-static const uint8_t verchk[] = { 0xE8u, 0x52, 0x58, 0xFEu, 0xFFu, 0xE8u, 0x4Du, 0xD3, 0xFEu, 0xFFu };
-static const uint8_t verchk_1422308210609141148[] = { 0xE8u, 0x72, 0x45, 0xC1u, 0x0E, 0xE8u, 0x4Du, 0xD3, 0xFEu, 0xFFu };
+static const uint8_t verchk_3617885[] = { 0xE8u, 0xC2, 0x07, 0xFDu, 0xFFu, 0x85u, 0xC0u, 0x75, 0x07u, 0xA2u };
+static const uint8_t verchk_3617885_Protected[] = { 0x96u, 0x83u, 0xE6u, 0x9Au, 0x25, 0x3C, 0xC7u, 0xE9u };
 //E8 72 45 C1 0E E8 4D
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -838,15 +931,16 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		if (memcmp(verchk, (const char *)0x005FD6C9, sizeof(verchk)) != 0)
+		if (memcmp(verchk_3617885, (const char *)(baseAddress + 0x1FDF69), sizeof(verchk_3617885)) != 0)
 		{
-			if (memcmp(verchk, (const char *)0x005FD6C9, sizeof(verchk_1422308210609141148)) != 0)
-				MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease update Sonic Mania on Steam.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
-			else
-				MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader.\n\nMod functionality will be disabled.", L"Mania Mod Loader", MB_ICONWARNING);
+			if (memcmp(verchk_3617885_Protected, (const char *)(baseAddress + 0x1FDF69), sizeof(verchk_3617885_Protected)) != 0)
+				MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader.\n\nMod functionality will be disabled.", L"Mania Mod Loader for Build 3617885", MB_ICONWARNING);
 		}
+
+		if (memcmp(verchk_3617885_Protected, (const char *)(baseAddress + 0x1FDF69), sizeof(verchk_3617885_Protected)) != 0)
+			WriteCall((void*)(baseAddress + 0x1FDF69), InitMods);
 		else
-			WriteCall((void*)0x005FD6C9, InitMods);
+			WriteJump(GetProcAddress(COMCTL32, "InitCommonControls"), InitProtected);
 		break;
 	case DLL_PROCESS_DETACH:
 		break;

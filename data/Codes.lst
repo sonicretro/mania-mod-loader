@@ -1,168 +1,158 @@
 Code "P1 Infinite Rings"
-write16 0085EA64 999
+write16 00469AD4 999
 
 Code "P2 Infinite Rings"
-write16 0085EEBC 999
+write16 00469F2C 999
+
+Code "P3 Infinite Rings"
+write16 0046A384 999
+
+Code "P4 Infinite Rings"
+write16 0046A7DC 999
 
 Code "Infinite Lives"
-write8 0085EA70 99
+write8 00469AE0 99
 
-Code "Freeze Timer"
-write8 06F35487 0xEB
+Patch "Freeze Timer"
+writenop 001F2613 6
+
+Patch "Ignore Damage"
+write8 000C5970 0xC3
 
 Code "P1 Always Have Combine Ring"
-write8 0085EA7C 1
+write8 00469AEC 1
 
 Code "P2 Always Have Combine Ring"
-write8 0085EED4 1
+write8 00469F44 1
 
 Code "Enable Debug Mode"
-write8 00E48768 1
+write8 00A535D4 1
 
 Patch "Enable Insta-Shield and Drop Dash"
-writenop 004C86FD 2
+writenop 000C86FD 2
 
-Code "Enable Super Peel-Out"
-writenop 004C35BA 2
-ifltu8 00E48758 38
-	write32 0085EB70 0x004C8FF0
-	write32 0085EFC8 0x004C8FF0
-endif
+;Code "Enable Super Peel-Out"
+;writenop 000C35BA 2
+;ifgtu8 00A535C4 8
+;	ifltu8 00A535C4 79
+;		writeoff 00469BE0 0x000C8FF0
+;		writeoff 0046A038 0x000C8FF0
+;	endif
+;endif
 
-Patch "Disable Super Peel-Out Animation"
-write16 004C35BC 0x62EB
-
-Patch "Enable Super With No Emeralds"
-writenop 004C82F6 2
-writenop 00453168 2
-
-Patch "Enable Super With 1 Ring"
-write8 004C82FE 1
-write8 00453170 1
-
-Code "P1 Always Sonic"
-write8 p008324FC|4 1
-
-Code "P1 Always Tails"
-write8 p008324FC|4 2
-
-Code "P1 Always Knuckles"
-write8 p008324FC|4 4
-
-Code "P1 Always Mighty"
-write8 p008324FC|4 8
-
-Code "P1 Always Ray"
-write8 p008324FC|4 16
-
-Code "Disable P2 (Mania Mode)"
-write8 p008324FC|5 0
-
-Code "P2 Always Sonic"
-write8 p008324FC|5 1
-
-Code "P2 Always Tails"
-write8 p008324FC|5 2
-
-Code "P2 Always Knuckles"
-write8 p008324FC|5 4
-
-Code "P2 Always Mighty"
-write8 p008324FC|5 8
-
-Code "P2 Always Ray"
-write8 p008324FC|5 16
-
-Code "P1 Has Sonic's Abilities"
-write32 0085EB6C 0x004C8630
-
-Code "P1 Has Tails' Abilities"
-write32 0085EB6C 0x004C8990
-
-Code "P1 Has Knuckles' Abilities"
-write32 0085EB6C 0x004C8A70
-
-Code "P1 Has Mighty's Abilities"
-write32 0085EB6C 0x004C8B70
-
-Code "P1 Has Ray's Abilities"
-write32 0085EB6C 0x004C8DF0
-
-Code "P1 Has ERZ Super Sonic's Abilities"
-write32 0085EB6C 0x004C2340
-
-Code "P2 Has Sonic's Abilities"
-write32 0085EFC4 0x004C8630
-
-Code "P2 Has Tails' Abilities"
-write32 0085EFC4 0x004C8990
-
-Code "P2 Has Knuckles' Abilities"
-write32 0085EFC4 0x004C8A70
-
-Code "P2 Has Mighty's Abilities"
-write32 0085EFC4 0x004C8B70
-
-Code "P2 Has Ray's Abilities"
-write32 0085EFC4 0x004C8DF0
-
-Code "P2 Has ERZ Super Sonic's Abilities"
-write32 0085EFC4 0x004C2340
+;Patch "Disable Super Peel-Out Animation"
+;write16 004C35BC 0x62EB
 
 Code "Super Forms Can Fly"
-write8 p00E9C5D4|00441790 2
+write8 p00AA763C|00441790 2
 
-Code "Disable Super Music"
-write8 p00E9C5D4|00441798 0
+Patch "Super Dash Costs No Rings"
+writenop 000C2445 6
+
+Patch "Remove Super Dash Cooldown"
+write8 000C24F8 0x00
+
+Patch "Enable Super With No Emeralds"
+writenop 000C82F6 2
+writenop 00053188 2
+
+Patch "Enable Super With 1 Ring"
+write8 000C82FE 1
+write8 00053170 1
+
+Patch "Prevent Super From Draining Rings"
+writenop 000C7673 6
+
+Code "P1 Has Sonic's Abilities"
+writeoff 00469BDC 0x000C8630
+
+Code "P1 Has Tails' Abilities"
+writeoff 00469BDC 0x000C8990
+
+Code "P1 Has Knuckles' Abilities"
+writeoff 00469BDC 0x000CBA70
+
+Code "P1 Has Mighty's Abilities"
+writeoff 00469BDC 0x000C8B70
+
+Code "P1 Has Ray's Abilities"
+writeoff 00469BDC 0x000C8DF0
+
+Code "P1 Has ERZ Super Sonic's Abilities"
+writeoff 00469BDC 0x000C2340
+
+Code "P2 Has Sonic's Abilities"
+writeoff 0046A034 0x000C8630
+
+Code "P2 Has Tails' Abilities"
+writeoff 0046A034 0x000C8990
+
+Code "P2 Has Knuckles' Abilities"
+writeoff 0046A034 0x000CBA70
+
+Code "P2 Has Mighty's Abilities"
+writeoff 0046A034 0x000C8B70
+
+Code "P2 Has Ray's Abilities"
+writeoff 0046A034 0x000C8DF0
+
+Code "P2 Has ERZ Super Sonic's Abilities"
+writeoff 0046A034 0x000C2340
 
 Code "Super Forms Can Be Canceled"
-ifeq8 0085EAC4 2
-	ifeq8 0085EB68 1
-		ifeq8 00836758 1
-			write8 0085EAC4 3
+ifeq8 00469B34 2
+	ifeq8 00469BD8 1
+		ifeq8 00441738 1
+			write8 00469B34 3
 		endif
 	endif
-	writenop 0045317A 2
+	writenop 0005317A 2
 else
-	write16 0045317A 0x487D
+	write16 0005317A 0x487D
 endif
 
 Code "P1 Have Bubble Shield Effects (No Protection)"
-write8 0085EA6C 2
+write8 00469ADC 2
 
 Code "P1 Have Flame Shield Effects (No Protection)"
-write8 0085EA6C 3
+write8 00469ADC 3
 
 Code "P1 Have Lightning Shield Effects (No Protection)"
-write8 0085EA6C 4
+write8 00469ADC 4
 
 Code "P2 Have Bubble Shield Effects (No Protection)"
-write8 0085EEC4 2
+write8 00469F34 2
 
 Code "P2 Have Flame Shield Effects (No Protection)"
-write8 0085EEC4 3
+write8 00469F34 3
 
 Code "P2 Have Lightning Shield Effects (No Protection)"
-write8 0085EEC4 4
-
-Patch "Always Play Cutscenes"
-write8 02BD68D1 0xEB
-
-Patch "Disable Extra Up Jingle"
-write8 03BAF160 0xC3
-writenop 03BB18FD 10
-
-Code "Always Hide HUD"
-write8 0086FFF5 0
-
-Code "Enable Vape Mode"
-write8 p00E9C5D4|0044178C 1
-
-Code "Enable Max Control"
-write8 p00E9C5D4|000410B4 0x0D
+write8 00469F34 4
 
 Patch "Disable Bonus Warps from Checkpoints"
-write8 0045B3A7 0xEB
+write8 0005B3A7 0xEB
+
+Patch "Special Stage: Don't Lose Rings With Time"
+write8 0009E639 0xEB
+
+Patch "Special Stage: Spikes Does Nothing"
+write8 0019E304 0xEB
+
+Patch "Special Stage: Bombs Does Nothing"
+write8 0019E414 0xE9
+write32 0019E415 0xA2
+
+Patch "Special Stage: Grass Has No Effect"
+write8 00096FB2 0xEB
+
+Patch "Special Stage: Start at Mach 3"
+write8 0009D8A1 0x02
+
+Code "Disable Super Music"
+write8 p00AA763C|00441798 0
+
+Code "Enable Max Control"
+write8 p00AA763C|000410B4 0x0D
 
 Patch "Disable Background Pausing"
-write8 005FDD00 0xEB
+write8 001FE5F0 0xEB
