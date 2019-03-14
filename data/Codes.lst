@@ -47,7 +47,8 @@ Code "Super Forms Can Fly"
 write8 p00AA763C|00441790 2
 
 Patch "Super Dash Costs No Rings"
-writenop 000C2445 6
+writenop 000C2445 7
+write8 000C244C 0xEB
 
 Patch "Remove Super Dash Cooldown"
 write8 000C24F8 0x00
