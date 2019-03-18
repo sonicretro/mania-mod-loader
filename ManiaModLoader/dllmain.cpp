@@ -412,6 +412,13 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int slot, int a3, unsigned i
 		stru_26B818[slot].anonymous_1 = 0;
 		stru_26B818[slot].anonymous_3 = 0x10000;
 		BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, 0.5f * MusicVolume);
+		// Vape Mode
+		if (*(int*)(*(int*)(baseAddress + 0xAA763C) + 0x0044178C))
+		{
+			BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, 75.0f - 100.0f);
+			BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO_PITCH, round((log(0.75f / 1.0f) / 0.05776227) * 100.0f) / 100.0f);
+		}
+
 		BASS_ChannelPlay(basschan, false);
 		if (useloop)
 		{
@@ -420,6 +427,7 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int slot, int a3, unsigned i
 		}
 		else
 			BASS_ChannelSetSync(basschan, BASS_SYNC_END, 0, onTrackEnd, nullptr);
+
 		if (!_stricmp(name, "1up.ogg"))
 			lastoneup = true;
 		else
@@ -457,6 +465,18 @@ void PauseSound_BASS()
 {
 	BASS_ChannelPause(basschan);
 	PauseSound();
+}
+
+FunctionPointer(void, ChangeMusicSpeed, (int slot, float volume, float Channelbalance, float PlaybackSpeed), 0x001BC830);
+void ChangeMusicSpeed_BASS(int slot, float volume, float Channelbalance, float PlaybackSpeed)
+{
+	ChangeMusicSpeed(slot, volume, Channelbalance, PlaybackSpeed);
+	if (slot == 0 && PlaybackSpeed != 0.0f)
+	{
+		BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, PlaybackSpeed * 100.0f - 100.0f);
+		BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO_PITCH, round((log(PlaybackSpeed / 1.0f) / 0.05776227f) * 100.0f) / 100.0f);
+	}
+
 }
 
 // Code Parser.
@@ -645,6 +665,7 @@ int InitMods()
 		//WriteCall((void*)0x5CAEB6, ResumeSound);
 		WriteData((char*)(baseAddress + 0x001FD61F), (char)0xEB);
 		WriteData((char*)(baseAddress + 0x001BC5AE), (char)0xEB);
+		*(void**)(baseAddress + 0x00A78ED8) = ChangeMusicSpeed_BASS;
 		speedshoestempo = settings->getBool("SpeedShoesTempoChange");
 		bluespheretempo = settings->getBool("BlueSpheresTempoChange");
 	}

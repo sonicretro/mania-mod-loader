@@ -19,6 +19,9 @@ writenop 001F2613 6
 Patch "Ignore Damage"
 write8 000C5970 0xC3
 
+Patch "Disable 1up Sound"
+writenop 000C57C2 5
+
 Code "P1 Always Have Combine Ring"
 write8 00469AEC 1
 
@@ -63,6 +66,39 @@ write8 00053170 1
 
 Patch "Prevent Super From Draining Rings"
 writenop 000C7673 6
+
+Code "P1 Always Sonic"
+write8 p00AA763C|4 1
+
+Code "P1 Always Tails"
+write8 p00AA763C|4 2
+
+Code "P1 Always Knuckles"
+write8 p00AA763C|4 4
+
+Code "P1 Always Mighty"
+write8 p00AA763C|4 8
+
+Code "P1 Always Ray"
+write8 p00AA763C|4 16
+
+Code "Disable P2 (Mania Mode)"
+write8 p00AA763C|5 0
+
+Code "P2 Always Sonic"
+write8 p00AA763C|5 1
+
+Code "P2 Always Tails"
+write8 p00AA763C|5 2
+
+Code "P2 Always Knuckles"
+write8 p00AA763C|5 4
+
+Code "P2 Always Mighty"
+write8 p00AA763C|5 8
+
+Code "P2 Always Ray"
+write8 p00AA763C|5 16
 
 Code "P1 Has Sonic's Abilities"
 writeoff 00469BDC 0x000C8630
@@ -154,6 +190,9 @@ write8 p00AA763C|00441798 0
 
 Code "Enable Max Control"
 write8 p00AA763C|000410B4 0x0D
+
+Code "Enable Vape Mode"
+write8 p00AA763C|0044178C 0x01
 
 Patch "Disable Background Pausing"
 write8 001FE5F0 0xEB
