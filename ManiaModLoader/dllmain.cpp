@@ -484,6 +484,7 @@ static CodeParser codeParser;
 
 float bluespheretempos[]{ 0, 8.6956521739130434782608f, 19.047619047619047619f, 31.578947368421052631f, 47.0588235294117647f };
 
+DataPointer(double, VideoPlayer_Position, 0x00AA75D0);
 DataPointer(MusicInfo *, MusicSlots, 0xAC6E08);
 static void __cdecl ProcessCodes()
 {
@@ -524,6 +525,13 @@ static void __cdecl ProcessCodes()
 		oldsong = song;
 	}
 	MainGameLoop();
+	if (MusicSlots != nullptr && basschan != 0)
+	{
+		if (stru_26B818[MusicSlots->CurrentSong].playStatus == 0)
+			VideoPlayer_Position = 1000000.0;
+		else
+			VideoPlayer_Position = BASS_ChannelBytes2Seconds(basschan, BASS_ChannelGetPosition(basschan, BASS_POS_BYTE));
+	}
 	RaiseEvents(modFramePostEvents);
 }
 
@@ -665,6 +673,7 @@ int InitMods()
 		//WriteCall((void*)0x5CAEB6, ResumeSound);
 		WriteData((char*)(baseAddress + 0x001FD61F), (char)0xEB);
 		WriteData((char*)(baseAddress + 0x001BC5AE), (char)0xEB);
+		WriteData<8>((void*)(baseAddress + 0x001FD66A), 0x90);
 		*(void**)(baseAddress + 0x00A78ED8) = ChangeMusicSpeed_BASS;
 		speedshoestempo = settings->getBool("SpeedShoesTempoChange");
 		bluespheretempo = settings->getBool("BlueSpheresTempoChange");
