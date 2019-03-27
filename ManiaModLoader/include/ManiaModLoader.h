@@ -169,6 +169,7 @@ DataPointer(bool, ConsoleEnabled, 0x002FC867);
 DataPointer(float, MusicVolume, 0x00A53078);
 DataPointer(PlayerData, Player1Data, 0x00469A10);
 DataPointer(PlayerData, Player2Data, 0x00469E68);
+DataPointer(unsigned char, SceneID, 0x00A535C4); 
 DataPointer(int, TimerCentiframes, 0x00A535B8);
 DataPointer(int, DebugEnabled, 0x00A535D4);
 DataPointer(int, UpdateTimer, 0x00A535DC);
@@ -177,8 +178,8 @@ DataPointer(char, TimerCentiseconds, 0x00A535E4);
 DataPointer(char, TimerSeconds, 0x00A535E5);
 DataPointer(char, TimerMinutes, 0x00A535E6);
 
-FunctionPointer(int, PlaySoundFX, (_WORD wavIndex, int a2, _BYTE playLength), 0x1BC3890);
-FunctionPointer(_WORD, loadWav, (const char *name), 0x1BC2F0);
+FunctionPointer(int, PlaySoundFX, (_WORD wavIndex, int a2, _BYTE playLength), 0x001BC390);
+FunctionPointer(_WORD, GetSoundFXID, (const char *name), 0x001BC2F0);
 
 //FunctionPointer(int, PrintDebug, (const char* fmt, ...), 0x1280);
 #define PrintDebug printf

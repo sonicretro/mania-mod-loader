@@ -62,13 +62,24 @@ static void SetRDataWriteProtection(bool protect)
 
 FileMap fileMap;
 
+static inline void ReplaceToForwardSlash(char* array)
+{
+	int len = strlen(array);
+	for (int i = 0; i < len; ++i)
+		if (array[i] == '\\') array[i] = '/';
+}
+
 int CheckFile_i(char *buf)
 {
-	if (fileMap.getModIndex(buf) != 0)
+	const char *tmp = fileMap.replaceFile(buf);
+	bool loadModdedFile = fileMap.getModIndex(buf) != 0;
+	if (tmp != buf)
 	{
-		const char *tmp = fileMap.replaceFile(buf);
 		strncpy(buf, tmp, MAX_PATH);
-		return 1;
+		if (loadModdedFile)
+			return 1;
+		else
+			ReplaceToForwardSlash(buf);
 	}
 	return !UseDataPack;
 }
@@ -161,7 +172,7 @@ int DecryptBytes(fileinfo *file, void *buffer, int bufferSize)
 
 
 void *LoadFile_ptr = (void*)(baseAddress + 0x001C53C0);
-int LoadFile(char *filename, fileinfo *info, void* unknown)
+__declspec(dllexport) int LoadFile(char *filename, fileinfo *info, void* unknown)
 {
 	int result;
 	__asm
@@ -170,35 +181,18 @@ int LoadFile(char *filename, fileinfo *info, void* unknown)
 		push unknown
 		push filename
 		call LoadFile_ptr
-		//add esp, 4
 		mov result, eax
 	}
 	return result;
 }
 
-int ReadBytesFromFile(fileinfo* file, void* buffer, int bytes)
+__declspec(dllexport) int ReadBytesFromFile(fileinfo* file, void* buffer, int bytes)
 {
 	int bytesRead = (*(decltype(fread)**)(baseAddress + 0x00243474))(buffer, 1, bytes, file->File);
 	if (file->IsEncrypted)
 		DecryptBytes(file, buffer, bytes);
 	return bytesRead;
 }
-
-/*void *ReadFileData_ptr = (void*)0x5A0AA0;
-inline int ReadFileData(void *buffer, fileinfo *a2, unsigned int _size)
-{
-	int result;
-	__asm
-	{
-		push [_size]
-		mov ecx, [a2]
-		mov edx, [buffer]
-		call ReadFileData_ptr
-		add esp, 4
-		mov result, eax
-	}
-	return result;
-}*/
 
 DataArray(struct_0, stru_26B818, 0x0026B818, 16);
 DWORD basschan;
@@ -212,36 +206,6 @@ int oldsong = -1;
 char oldstatus = 0;
 char* lastsong = new char[MAX_PATH];
 bool lastoneup = false;
-
-/**
-* BASS callback: Current track has ended.
-* @param handle
-* @param channel
-* @param data
-* @param user
-*/
-static void __stdcall onTrackEnd(HSYNC handle, DWORD channel, DWORD data, void *user)
-{
-	BASS_ChannelStop(channel);
-	BASS_StreamFree(channel);
-	if (musicbuf)
-	{
-		delete[] musicbuf;
-		musicbuf = nullptr;
-	}
-	if (one_up)
-	{
-		basschan = lastbasschan;
-		lastbasschan = 0;
-		loopPoint = lastlooppoint;
-		musicbuf = lastmusicbuf;
-		lastmusicbuf = nullptr;
-		BASS_ChannelPlay(basschan, FALSE);
-		one_up = false;
-	}
-	else if (oldsong != -1)
-		oldstatus = stru_26B818[oldsong].playStatus = 0;
-}
 
 static void ReleaseLastTrack()
 {
@@ -266,7 +230,7 @@ static void ReleaseCurrentTrack()
 	{
 		BASS_ChannelStop(basschan);
 		BASS_StreamFree(basschan);
-		if (lastmusicbuf)
+		if (musicbuf)
 		{
 			delete[] musicbuf;
 			musicbuf = nullptr;
@@ -286,6 +250,26 @@ static void ContinueLastTrack()
 	BASS_ChannelPlay(basschan, FALSE);
 }
 
+
+/**
+* BASS callback: Current track has ended.
+* @param handle
+* @param channel
+* @param data
+* @param user
+*/
+static void __stdcall onTrackEnd(HSYNC handle, DWORD channel, DWORD data, void *user)
+{
+	ReleaseCurrentTrack();
+	if (one_up)
+	{
+		ContinueLastTrack();
+		one_up = false;
+	}
+	else if (oldsong != -1)
+		oldstatus = stru_26B818[oldsong].playStatus = 0;
+}
+
 static void __stdcall LoopTrack(HSYNC handle, DWORD channel, DWORD data, void *user)
 {
 	BASS_ChannelSetPosition(channel, loopPoint, BASS_POS_BYTE);
@@ -295,9 +279,10 @@ bool enablevgmstream;
 bool bluespheretempo = false;
 int bluespheretime = -1;
 
-int __cdecl PlayMusicFile_BASS(char *name, unsigned int slot, int a3, unsigned int loopstart, bool createThread)
+int __cdecl PlayMusicFile_BASS(char *name, unsigned int slot, int a3, unsigned int loopstart, bool createLoopThread)
 {
-	//PrintDebug("PlayMusicFile_BASS(\"%s\", %u, %d, %u, %d);\n", name, a2, a3, loopstart, a5);
+	if (ConsoleEnabled)
+		PrintDebug("PlayMusicFile_BASS(\"%s\", %u, %d, %u, %s);\n", name, slot, a3, loopstart, createLoopThread ? "true" : "false");
 	if (stru_26B818[slot].playStatus == 3)
 		return -1;
 	string namestr = name;
@@ -309,17 +294,7 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int slot, int a3, unsigned i
 	{
 		if (one_up)
 		{
-			if (basschan != 0)
-			{
-				BASS_ChannelStop(basschan);
-				BASS_StreamFree(basschan);
-				basschan = 0;
-			}
-			if (musicbuf)
-			{
-				delete[] musicbuf;
-				musicbuf = nullptr;
-			}
+			ReleaseCurrentTrack();
 		}
 		else
 		{
@@ -412,13 +387,7 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int slot, int a3, unsigned i
 		stru_26B818[slot].anonymous_1 = 0;
 		stru_26B818[slot].anonymous_3 = 0x10000;
 		BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_VOL, 0.5f * MusicVolume);
-		// Vape Mode
-		if (*(int*)(*(int*)(baseAddress + 0xAA763C) + 0x0044178C))
-		{
-			BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, 75.0f - 100.0f);
-			BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO_PITCH, round((log(0.75f / 1.0f) / 0.05776227) * 100.0f) / 100.0f);
-		}
-
+		
 		BASS_ChannelPlay(basschan, false);
 		if (useloop)
 		{
@@ -470,6 +439,8 @@ void PauseSound_BASS()
 FunctionPointer(void, ChangeMusicSpeed, (int slot, float volume, float Channelbalance, float PlaybackSpeed), 0x001BC830);
 void ChangeMusicSpeed_BASS(int slot, float volume, float Channelbalance, float PlaybackSpeed)
 {
+	if (ConsoleEnabled)
+		PrintDebug("ChangeMusicSpeed_BASS(%u, %.2f, %.2f, %.2f);\n", slot, volume, Channelbalance, PlaybackSpeed);
 	ChangeMusicSpeed(slot, volume, Channelbalance, PlaybackSpeed);
 	if (slot == 0 && PlaybackSpeed != 0.0f)
 	{
@@ -500,8 +471,7 @@ static void __cdecl ProcessCodes()
 				switch (status)
 				{
 				case 0:
-					BASS_ChannelStop(basschan);
-					BASS_StreamFree(basschan);
+					ReleaseCurrentTrack();
 					break;
 				case 2:
 					BASS_ChannelPlay(basschan, false);
@@ -525,12 +495,15 @@ static void __cdecl ProcessCodes()
 		oldsong = song;
 	}
 	MainGameLoop();
-	if (MusicSlots != nullptr && basschan != 0)
+	if (MusicSlots != nullptr && SceneID != 133)
 	{
-		if (stru_26B818[MusicSlots->CurrentSong].playStatus == 0)
-			VideoPlayer_Position = 1000000.0;
+		double pos = VideoPlayer_Position;
+		if (stru_26B818[MusicSlots->CurrentSong].playStatus == 0 || basschan == 0)
+			pos += 1.0/60.0;
 		else
-			VideoPlayer_Position = BASS_ChannelBytes2Seconds(basschan, BASS_ChannelGetPosition(basschan, BASS_POS_BYTE));
+			pos = BASS_ChannelBytes2Seconds(basschan, BASS_ChannelGetPosition(basschan, BASS_POS_BYTE));
+		if (pos > VideoPlayer_Position)
+			VideoPlayer_Position = pos;
 	}
 	RaiseEvents(modFramePostEvents);
 }
@@ -539,7 +512,8 @@ string savepath;
 StdcallFunctionPointer(int, TryLoadUserFile, (const char *filename, void *buffer, unsigned int bufSize, int(__cdecl *setStatus)(int)), 0x06EF1780);
 int __stdcall TryLoadUserFile_r(const char *filename, void *buffer, unsigned int bufSize, int (__cdecl *setStatus)(int))
 {
-	PrintDebug("Attempting to load file: %s\n", filename);
+	if (ConsoleEnabled)
+		PrintDebug("Attempting to load file: %s\n", filename);
 	string path = savepath + '\\' + filename;
 	if (IsFile(path))
 	{
@@ -557,14 +531,16 @@ int __stdcall TryLoadUserFile_r(const char *filename, void *buffer, unsigned int
 	}
 	else
 	{
-		PrintDebug("  Does not exist! Loading Steam UserFile!\n");
+		if (ConsoleEnabled)
+			PrintDebug("  Does not exist! Loading Steam UserFile!\n");
 		return TryLoadUserFile(filename, buffer, bufSize, setStatus);
 	}
 }
 
 int __stdcall TrySaveUserFile_r(const char *filename, void *buffer, unsigned int bufSize, int (__cdecl *setStatus)(int), unsigned int a5)
 {
-	PrintDebug("Attempting to save file: %s\n", filename);
+	if (ConsoleEnabled)
+		PrintDebug("Attempting to save file: %s\n", filename);
 	if (!IsDirectory(savepath))
 		CreateDirectoryA(savepath.c_str(), nullptr);
 	string path = savepath + '\\' + filename;
@@ -578,7 +554,8 @@ int __stdcall TrySaveUserFile_r(const char *filename, void *buffer, unsigned int
 
 int __stdcall TryDeleteUserFile_r(const char *filename, int(__cdecl *setStatus)(int))
 {
-	PrintDebug("Attempting to delete file: %s\n", filename);
+	if (ConsoleEnabled)
+		PrintDebug("Attempting to delete file: %s\n", filename);
 	string path = savepath + '\\' + filename;
 	DeleteFileA(path.c_str());
 	return setStatus(STATUS_OK);
@@ -683,6 +660,7 @@ int InitMods()
 
 	vector<std::pair<ModInitFunc, string>> initfuncs;
 	vector<std::pair<string, string>> errors;
+	unordered_map<string, string> filereplaces;
 
 	if (ConsoleEnabled)
 		PrintDebug("Loading mods...\n");
@@ -711,6 +689,29 @@ int InitMods()
 		const string mod_nameA = modinfo->getString("Name");
 		if (ConsoleEnabled)
 			PrintDebug("%u. %s\n", i, mod_nameA.c_str());
+
+		if (ini_mod->hasGroup("IgnoreFiles"))
+		{
+			const IniGroup *group = ini_mod->getGroup("IgnoreFiles");
+			auto data = group->data();
+			for (const auto& iter : *data)
+			{
+				fileMap.addIgnoreFile(iter.first, i);
+				if (ConsoleEnabled)
+					PrintDebug("Ignored file: %s\n", iter.first.c_str());
+			}
+		}
+
+		if (ini_mod->hasGroup("ReplaceFiles"))
+		{
+			const IniGroup *group = ini_mod->getGroup("ReplaceFiles");
+			auto data = group->data();
+			for (const auto& iter : *data)
+			{
+				filereplaces[FileMap::normalizePath(iter.first)] =
+					FileMap::normalizePath(iter.second);
+			}
+		}
 
 		// Check for Data replacements.
 		const string modSysDirA = mod_dirA + "\\data";
@@ -833,6 +834,9 @@ int InitMods()
 
 		MessageBoxA(nullptr, message.str().c_str(), "Mods failed to load", MB_OK | MB_ICONERROR);
 	}
+
+	for (const auto& filereplace : filereplaces)
+		fileMap.addReplaceFile(filereplace.first, filereplace.second);
 
 	for (unsigned int i = 0; i < initfuncs.size(); i++)
 		initfuncs[i].first(initfuncs[i].second.c_str());
