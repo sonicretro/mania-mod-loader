@@ -509,7 +509,7 @@ static void __cdecl ProcessCodes()
 }
 
 string savepath;
-StdcallFunctionPointer(int, TryLoadUserFile, (const char *filename, void *buffer, unsigned int bufSize, int(__cdecl *setStatus)(int)), 0x06EF1780);
+StdcallFunctionPointer(int, TryLoadUserFile, (const char *filename, void *buffer, unsigned int bufSize, int(__cdecl *setStatus)(int)), 0x001ED7F0);
 int __stdcall TryLoadUserFile_r(const char *filename, void *buffer, unsigned int bufSize, int (__cdecl *setStatus)(int))
 {
 	if (ConsoleEnabled)
@@ -816,7 +816,6 @@ int InitMods()
 
 	if (!savepath.empty())
 	{
-		// TODO: NEEDS TESTING
 		WriteCall((void*)(baseAddress + 0x1BDFFF), TryLoadUserFile_r);
 		WriteCall((void*)(baseAddress + 0x1ECEAD), TryLoadUserFile_r);
 		WriteCall((void*)(baseAddress + 0x1BE022), TrySaveUserFile_r);
