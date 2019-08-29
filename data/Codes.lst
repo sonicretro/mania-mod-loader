@@ -46,6 +46,9 @@ writenop 000C86FD 2
 ;Patch "Disable Super Peel-Out Animation"
 ;write16 004C35BC 0x62EB
 
+Patch "Enable CESA Screen"
+write8 00152EDC 0x0
+
 Code "Super Forms Can Fly"
 write8 p00AA763C|00441790 2
 
