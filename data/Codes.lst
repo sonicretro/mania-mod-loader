@@ -49,6 +49,9 @@ writenop 000C86FD 2
 Patch "Enable CESA Screen"
 write8 00152EDC 0x0
 
+Patch "Always Play Cutscenes"
+write8 0009EF61 0xEB
+
 Code "Super Forms Can Fly"
 write8 p00AA763C|00441790 2
 
