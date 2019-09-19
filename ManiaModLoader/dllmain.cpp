@@ -508,6 +508,23 @@ static void __cdecl ProcessCodes()
 	RaiseEvents(modFramePostEvents);
 }
 
+static int loc_HookScreenUpdateReturn = baseAddress + 0x0001D7A;
+static __declspec(naked) void HookScreenUpdate()
+{
+	__asm
+	{
+		mov ecx, [esi + 0x7C]
+		or edx, -01
+		pushad;
+	}
+	RaiseEvents(modScreenUpdateEvents);
+	__asm
+	{
+		popad;
+		jmp loc_HookScreenUpdateReturn
+	}
+}
+
 string savepath;
 StdcallFunctionPointer(int, TryLoadUserFile, (const char *filename, void *buffer, unsigned int bufSize, int(__cdecl *setStatus)(int)), 0x001ED7F0);
 int __stdcall TryLoadUserFile_r(const char *filename, void *buffer, unsigned int bufSize, int (__cdecl *setStatus)(int))
@@ -768,6 +785,7 @@ int InitMods()
 							if (pointers)
 								for (int j = 0; j < pointers->Count; j++)
 									WriteData((void **)pointers->Pointers[j].address, pointers->Pointers[j].data);
+							RegisterEvent(modScreenUpdateEvents, module, "OnScreenUpdate");
 							RegisterEvent(modFrameEvents, module, "OnFrame");
 							RegisterEvent(modFramePostEvents, module, "OnFramePost");
 						}
@@ -940,6 +958,9 @@ int InitMods()
 
 	WriteJump((void*)(baseAddress + 0x1C540E), CheckFile);
 	WriteCall((void*)(baseAddress + 0x1FE1BE), ProcessCodes);
+	// ScreenUpdate
+	WriteData<6>((void*)(baseAddress + 0x0001D74), 0x90);
+	WriteJump((void*)(baseAddress + 0x0001D74), HookScreenUpdate);
 	return result;
 }
 HMODULE COMCTL32 = LoadLibraryA("comctl32");

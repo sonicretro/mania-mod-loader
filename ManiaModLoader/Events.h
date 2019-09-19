@@ -3,6 +3,7 @@
 #include "ManiaModLoader.h"
 #include <vector>
 
+extern std::vector<ModEvent> modScreenUpdateEvents;
 extern std::vector<ModEvent> modFrameEvents;
 extern std::vector<ModEvent> modFramePostEvents;
 

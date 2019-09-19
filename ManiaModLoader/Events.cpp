@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Events.h"
 
+std::vector<ModEvent> modScreenUpdateEvents;
 std::vector<ModEvent> modFrameEvents;
 std::vector<ModEvent> modFramePostEvents;
 /**
