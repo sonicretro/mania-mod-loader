@@ -73,6 +73,7 @@
 			this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
 			this.developerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.generateManifestToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.origMusicPlayerCheckBox = new System.Windows.Forms.CheckBox();
 			label1 = new System.Windows.Forms.Label();
 			this.tabControl1.SuspendLayout();
 			this.tabPage1.SuspendLayout();
@@ -332,6 +333,7 @@
 			// 
 			// tabPage4
 			// 
+			this.tabPage4.Controls.Add(this.origMusicPlayerCheckBox);
 			this.tabPage4.Controls.Add(this.groupBox4);
 			this.tabPage4.Controls.Add(this.blueSpheresTempoCheckBox);
 			this.tabPage4.Controls.Add(this.speedShoesTempoCheckBox);
@@ -357,7 +359,7 @@
 			this.groupBox4.Controls.Add(this.numericUpdateFrequency);
 			this.groupBox4.Controls.Add(this.comboUpdateFrequency);
 			this.groupBox4.Controls.Add(this.checkUpdateStartup);
-			this.groupBox4.Location = new System.Drawing.Point(6, 102);
+			this.groupBox4.Location = new System.Drawing.Point(6, 125);
 			this.groupBox4.Name = "groupBox4";
 			this.groupBox4.Size = new System.Drawing.Size(366, 90);
 			this.groupBox4.TabIndex = 6;
@@ -447,7 +449,7 @@
 			// blueSpheresTempoCheckBox
 			// 
 			this.blueSpheresTempoCheckBox.AutoSize = true;
-			this.blueSpheresTempoCheckBox.Location = new System.Drawing.Point(6, 79);
+			this.blueSpheresTempoCheckBox.Location = new System.Drawing.Point(6, 102);
 			this.blueSpheresTempoCheckBox.Name = "blueSpheresTempoCheckBox";
 			this.blueSpheresTempoCheckBox.Size = new System.Drawing.Size(234, 17);
 			this.blueSpheresTempoCheckBox.TabIndex = 5;
@@ -457,7 +459,7 @@
 			// speedShoesTempoCheckBox
 			// 
 			this.speedShoesTempoCheckBox.AutoSize = true;
-			this.speedShoesTempoCheckBox.Location = new System.Drawing.Point(6, 56);
+			this.speedShoesTempoCheckBox.Location = new System.Drawing.Point(6, 79);
 			this.speedShoesTempoCheckBox.Name = "speedShoesTempoCheckBox";
 			this.speedShoesTempoCheckBox.Size = new System.Drawing.Size(259, 17);
 			this.speedShoesTempoCheckBox.TabIndex = 4;
@@ -468,7 +470,7 @@
 			// 
 			this.installURLHandlerButton.AutoSize = true;
 			this.installURLHandlerButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-			this.installURLHandlerButton.Location = new System.Drawing.Point(6, 198);
+			this.installURLHandlerButton.Location = new System.Drawing.Point(6, 221);
 			this.installURLHandlerButton.Name = "installURLHandlerButton";
 			this.installURLHandlerButton.Size = new System.Drawing.Size(109, 23);
 			this.installURLHandlerButton.TabIndex = 3;
@@ -661,6 +663,17 @@
 			this.generateManifestToolStripMenuItem.Text = "Generate manifest";
 			this.generateManifestToolStripMenuItem.Click += new System.EventHandler(this.generateManifestToolStripMenuItem_Click);
 			// 
+			// origMusicPlayerCheckBox
+			// 
+			this.origMusicPlayerCheckBox.AutoSize = true;
+			this.origMusicPlayerCheckBox.Location = new System.Drawing.Point(6, 56);
+			this.origMusicPlayerCheckBox.Name = "origMusicPlayerCheckBox";
+			this.origMusicPlayerCheckBox.Size = new System.Drawing.Size(146, 17);
+			this.origMusicPlayerCheckBox.TabIndex = 7;
+			this.origMusicPlayerCheckBox.Text = "Use original music system";
+			this.origMusicPlayerCheckBox.UseVisualStyleBackColor = true;
+			this.origMusicPlayerCheckBox.CheckedChanged += new System.EventHandler(this.origMusicPlayerCheckBox_CheckedChanged);
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -737,5 +750,6 @@
 		private System.Windows.Forms.NumericUpDown numericUpdateFrequency;
 		private System.Windows.Forms.ComboBox comboUpdateFrequency;
 		private System.Windows.Forms.CheckBox checkUpdateStartup;
+		private System.Windows.Forms.CheckBox origMusicPlayerCheckBox;
 	}
 }

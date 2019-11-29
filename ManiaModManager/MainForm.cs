@@ -104,6 +104,7 @@ namespace ManiaModManager
 
 			enableDebugConsole.Checked = loaderini.EnableConsole;
 			startingScene.SelectedIndex = loaderini.StartingScene;
+			origMusicPlayerCheckBox.Checked = loaderini.UseOriginalMusicPlayer;
 			speedShoesTempoCheckBox.Checked = loaderini.SpeedShoesTempoChange;
 			blueSpheresTempoCheckBox.Checked = loaderini.BlueSpheresTempoChange;
 			checkUpdateStartup.Checked = loaderini.UpdateCheck;
@@ -801,6 +802,7 @@ namespace ManiaModManager
 
 			loaderini.EnableConsole = enableDebugConsole.Checked;
 			loaderini.StartingScene = startingScene.SelectedIndex;
+			loaderini.UseOriginalMusicPlayer = origMusicPlayerCheckBox.Checked;
 			loaderini.SpeedShoesTempoChange = speedShoesTempoCheckBox.Checked;
 			loaderini.BlueSpheresTempoChange = blueSpheresTempoCheckBox.Checked;
 			loaderini.UpdateCheck = checkUpdateStartup.Checked;
@@ -1308,6 +1310,11 @@ namespace ManiaModManager
 		{
 			Process.Start(new ProcessStartInfo(Application.ExecutablePath, "urlhandler") { UseShellExecute = true, Verb = "runas" }).WaitForExit();
 			MessageBox.Show(this, "URL handler installed!", Text);
+		}
+
+		private void origMusicPlayerCheckBox_CheckedChanged(object sender, EventArgs e)
+		{
+			blueSpheresTempoCheckBox.Enabled = speedShoesTempoCheckBox.Enabled = !origMusicPlayerCheckBox.Checked;
 		}
 	}
 }

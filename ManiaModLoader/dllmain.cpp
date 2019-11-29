@@ -275,7 +275,7 @@ static void __stdcall LoopTrack(HSYNC handle, DWORD channel, DWORD data, void *u
 	BASS_ChannelSetPosition(channel, loopPoint, BASS_POS_BYTE);
 }
 
-bool enablevgmstream;
+bool enablevgmstream = false;
 bool bluespheretempo = false;
 int bluespheretime = -1;
 
@@ -461,7 +461,7 @@ static void __cdecl ProcessCodes()
 {
 	codeParser.processCodeList();
 	RaiseEvents(modFrameEvents);
-	if (MusicSlots != nullptr && basschan != 0)
+	if (enablevgmstream && MusicSlots != nullptr && basschan != 0)
 	{
 		int song = MusicSlots->CurrentSong;
 		if (song != -1)
@@ -495,7 +495,7 @@ static void __cdecl ProcessCodes()
 		oldsong = song;
 	}
 	MainGameLoop();
-	if (MusicSlots != nullptr && SceneID != 133)
+	if (enablevgmstream && MusicSlots != nullptr && SceneID != 133)
 	{
 		double pos = VideoPlayer_Position;
 		if (stru_26B818[MusicSlots->CurrentSong].playStatus == 0 || basschan == 0)
@@ -649,8 +649,9 @@ int InitMods()
 	}
 
 	bool speedshoestempo = false;
-	if (enablevgmstream = (bool)BASS_Init(-1, 44100, 0, nullptr, nullptr))
+	if (!settings->getBool("UseOriginalMusicPlayer") && BASS_Init(-1, 44100, 0, nullptr, nullptr))
 	{
+		enablevgmstream = true;
 		WriteJump((void*)(baseAddress + 0x001BC640), PlayMusicFile_BASS);
 		WriteData((char*)(baseAddress + 0x001BCA20), (char)0xC3);
 		//WriteData((char*)0x4016A9, (char)0xB8);//
@@ -818,7 +819,7 @@ int InitMods()
 				musicloops[name] = std::stoi(iter->second);
 			}
 		}
-		if (modinfo->getBool("BlueSpheresTempoChange"))
+		if (enablevgmstream && modinfo->getBool("BlueSpheresTempoChange"))
 			bluespheretempo = true;
 		if (enablevgmstream && modinfo->getBool("SpeedShoesTempoChange"))
 			speedshoestempo = true;
