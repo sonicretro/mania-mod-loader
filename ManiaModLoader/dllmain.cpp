@@ -677,6 +677,7 @@ int InitMods()
 		musictramp = new Trampoline((baseAddress + 0x1BC640), (baseAddress + 0x1BC646), PlayMusicFile_Normal);
 
 	vector<std::pair<ModInitFunc, string>> initfuncs;
+	vector<std::pair<ModInitFunc, string>> postinitfuncs;
 	vector<std::pair<string, string>> errors;
 	unordered_map<string, string> filereplaces;
 
@@ -770,6 +771,9 @@ int InitMods()
 							const ModInitFunc init = (const ModInitFunc)GetProcAddress(module, "Init");
 							if (init)
 								initfuncs.push_back({ init, mod_dirA });
+							const ModInitFunc postInit = (const ModInitFunc)GetProcAddress(module, "PostInit");
+							if (postInit)
+								postinitfuncs.push_back({ postInit, mod_dirA });
 							const PatchList *patches = (const PatchList *)GetProcAddress(module, "Patches");
 							if (patches)
 								for (int j = 0; j < patches->Count; j++)
@@ -858,7 +862,7 @@ int InitMods()
 
 	for (unsigned int i = 0; i < initfuncs.size(); i++)
 		initfuncs[i].first(initfuncs[i].second.c_str());
-
+	
 	if (ConsoleEnabled)
 		PrintDebug("Finished loading mods\n");
 
@@ -962,6 +966,11 @@ int InitMods()
 	// ScreenUpdate
 	WriteData<6>((void*)(baseAddress + 0x0001D74), 0x90);
 	WriteJump((void*)(baseAddress + 0x0001D74), HookScreenUpdate);
+
+	// Run post init to all mods after the mod loader has finished starting up
+	for (auto& postinitfunc : postinitfuncs)
+		postinitfunc.first(postinitfunc.second.c_str());
+
 	return result;
 }
 HMODULE COMCTL32 = LoadLibraryA("comctl32");
