@@ -525,6 +525,23 @@ static __declspec(naked) void HookScreenUpdate()
 	}
 }
 
+static int loc_HookScreenDrawUpdateReturn = baseAddress + 0x000532B9;
+static __declspec(naked) void HookScreenDrawUpdate()
+{
+	__asm
+	{
+		pushad;
+	}
+	RaiseEvents(modScreenDrawUpdateEvents);
+	__asm
+	{
+		popad;
+		add esp, 0x04
+		mov ebx, eax
+		jmp loc_HookScreenDrawUpdateReturn
+	}
+}
+
 string savepath;
 StdcallFunctionPointer(int, TryLoadUserFile, (const char *filename, void *buffer, unsigned int bufSize, int(__cdecl *setStatus)(int)), 0x001ED7F0);
 int __stdcall TryLoadUserFile_r(const char *filename, void *buffer, unsigned int bufSize, int (__cdecl *setStatus)(int))
@@ -791,6 +808,7 @@ int InitMods()
 								for (int j = 0; j < pointers->Count; j++)
 									WriteData((void **)pointers->Pointers[j].address, pointers->Pointers[j].data);
 							RegisterEvent(modScreenUpdateEvents, module, "OnScreenUpdate");
+							RegisterEvent(modScreenDrawUpdateEvents, module, "OnScreenDrawUpdate");
 							RegisterEvent(modFrameEvents, module, "OnFrame");
 							RegisterEvent(modFramePostEvents, module, "OnFramePost");
 						}
@@ -966,6 +984,9 @@ int InitMods()
 	// ScreenUpdate
 	WriteData<6>((void*)(baseAddress + 0x0001D74), 0x90);
 	WriteJump((void*)(baseAddress + 0x0001D74), HookScreenUpdate);
+	// ScreenDrawUpdate
+	WriteData<5>((void*)(baseAddress + 0x000532B4), 0x90);
+	WriteJump((void*)(baseAddress + 0x000532B4), HookScreenDrawUpdate);
 
 	// Run post init to all mods after the mod loader has finished starting up
 	for (auto& postinitfunc : postinitfuncs)
