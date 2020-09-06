@@ -69,6 +69,21 @@ static inline void ReplaceToForwardSlash(char* array)
 		if (array[i] == '\\') array[i] = '/';
 }
 
+const char* __cdecl GetReplaceablePath(const char* path)
+{
+	return fileMap.replaceFile(path);
+}
+
+void AddReplaceFile(const char* src, const char* dst)
+{
+	fileMap.addReplaceFile(src, dst);
+}
+
+bool _CheckFile(const char* path)
+{
+	return fileMap.getModIndex(path) != 0;
+}
+
 int CheckFile_i(char *buf)
 {
 	const char *tmp = fileMap.replaceFile(buf);
@@ -608,6 +623,15 @@ static vector<wstring> split(const wstring &s, wchar_t delim)
 	return elems;
 }
 
+static const HelperFunctions helperFunctions =
+{
+	ModLoaderVer,
+	&ReadBytesFromFile,
+	&AddReplaceFile,
+	&GetReplaceablePath,
+	&_CheckFile
+};
+
 FunctionPointer(int, sub_1CE730, (), 0x1CE730);
 int InitMods()
 {
@@ -785,6 +809,9 @@ int InitMods()
 					{
 						if (info->GameVersion == GameVer)
 						{
+							const HelperFunctions** helperFuncs = (const HelperFunctions**)GetProcAddress(module, "MML_HelperFunctions");
+							if (helperFuncs)
+								*helperFuncs = &helperFunctions;
 							const ModInitFunc init = (const ModInitFunc)GetProcAddress(module, "Init");
 							if (init)
 								initfuncs.push_back({ init, mod_dirA });

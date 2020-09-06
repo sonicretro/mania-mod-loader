@@ -166,6 +166,21 @@ struct PlayerData
 	void(__cdecl *PeelOutThing)();
 };
 
+struct HelperFunctions
+{
+	// The version of the structure.
+	int Version;
+	// Registers a start position for a character.
+	int(__cdecl* ReadBytesFromFile)(fileinfo* file, void* buffer, int bytes);
+	// Replaces the source file with the destination file.
+	void(__cdecl* AddReplaceFile)(const char* src, const char* dst);
+	// Gets the real path to a replaceable file.
+	const char* (__cdecl* GetReplaceablePath)(const char* path);
+	// Checks if a replaceable file exist.
+	bool(__cdecl* CheckFile)(const char* path);
+};
+
+
 // define function and variable pointers here
 DataPointer(bool, UseDataPack, 0x002FC865);
 DataPointer(bool, ConsoleEnabled, 0x002FC867);
