@@ -194,9 +194,6 @@ write8 0009D8A1 0x02
 Code "Disable Super Music"
 write8 p00AA763C|00441798 0
 
-Code "Enable Max Control + Debug mode"
-write8 p00AA763C|000410B4 0x0D
-
 Code "Enable Max Control"
 write8 p00AA763C|000410B4 0x0C
 
