@@ -632,6 +632,29 @@ static const HelperFunctions helperFunctions =
 	&_CheckFile
 };
 
+struct GameInfo {
+	void* FunctionPtrs;
+	void* UserdataPtrs;
+	void* GameName;
+	void* CurrentSKU;
+	void* CurrentEntity;
+	void* ActiveDPad;
+	void* ActiveAnalogStick;
+	void* gap1C;
+	void* dword20;
+	void* dword24;
+	void* dword28;
+	void* dword2C;
+	void* ScreenInfo;
+};
+
+ThiscallFunctionPointer(int, SetupObjects, (GameInfo* GameInfo), 0x1A6E20);
+int LinkGameLogic(GameInfo* GameInfo) {
+	int result = SetupObjects(GameInfo);
+	RaiseEvents(modLinkEvents);
+	return result;
+};
+
 FunctionPointer(int, sub_1CE730, (), 0x1CE730);
 int InitMods()
 {
@@ -834,6 +857,7 @@ int InitMods()
 							if (pointers)
 								for (int j = 0; j < pointers->Count; j++)
 									WriteData((void **)pointers->Pointers[j].address, pointers->Pointers[j].data);
+							RegisterEvent(modLinkEvents, module, "LinkGameLogic");
 							RegisterEvent(modScreenUpdateEvents, module, "OnScreenUpdate");
 							RegisterEvent(modScreenDrawUpdateEvents, module, "OnScreenDrawUpdate");
 							RegisterEvent(modFrameEvents, module, "OnFrame");
@@ -1004,6 +1028,13 @@ int InitMods()
 				PrintDebug("Code file is not in the correct format.\n");
 		}
 		codes_str.close();
+	}
+
+
+	//Enable Game.dll logic
+	if (modLinkEvents.size() >= 1) {
+		WriteData<sizeof(byte)>((void*)(baseAddress + 0x002FC864), 0x01);
+		WriteCall((void*)(baseAddress + 0x1D302F), LinkGameLogic);
 	}
 
 	WriteJump((void*)(baseAddress + 0x1C540E), CheckFile);
