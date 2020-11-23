@@ -648,12 +648,25 @@ struct GameInfo {
 	void* ScreenInfo;
 };
 
+DataPointer(HMODULE, GameDLLModule, 0x6ECA10);
 ThiscallFunctionPointer(int, SetupObjects, (GameInfo* GameInfo), 0x1A6E20);
-int LinkGameLogic(GameInfo* GameInfo) {
+static int LinkGameLogic(GameInfo* GameInfo) {
 	int result = SetupObjects(GameInfo);
-	RaiseEvents(modLinkEvents);
+	RaiseEvents(modLinkEvents); 
+	GameDLLModule = NULL; // Game will try freeing it otherwise
 	return result;
 };
+
+HMODULE GetCurrentModule()
+{ // NB: XP+ solution!
+	HMODULE hModule = NULL;
+	GetModuleHandleEx(
+		GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+		(LPCTSTR)GetCurrentModule,
+		&hModule);
+
+	return hModule;
+}
 
 FunctionPointer(int, sub_1CE730, (), 0x1CE730);
 int InitMods()
@@ -1032,10 +1045,9 @@ int InitMods()
 
 
 	//Enable Game.dll logic
-	if (modLinkEvents.size() >= 1) {
-		WriteData<sizeof(byte)>((void*)(baseAddress + 0x002FC864), 0x01);
-		WriteCall((void*)(baseAddress + 0x1D302F), LinkGameLogic);
-	}
+	WriteData<sizeof(byte)>((void*)(baseAddress + 0x002FC864), 0x01);
+	GameDLLModule = GetCurrentModule(); //Done so the game thinks we're giving it a game.dll
+	WriteCall((void*)(baseAddress + 0x1D302F), LinkGameLogic); // but we're actually using the function call for ourselves!!
 
 	WriteJump((void*)(baseAddress + 0x1C540E), CheckFile);
 	WriteCall((void*)(baseAddress + 0x1FE1BE), ProcessCodes);
