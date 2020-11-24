@@ -1045,7 +1045,7 @@ int InitMods()
 
 
 	//Enable Game.dll logic
-	WriteData<sizeof(byte)>((void*)(baseAddress + 0x002FC864), 0x01);
+	WriteData<1>((void*)(baseAddress + 0x002FC864), 0x01);
 	GameDLLModule = GetCurrentModule(); //Done so the game thinks we're giving it a game.dll
 	WriteCall((void*)(baseAddress + 0x1D302F), LinkGameLogic); // but we're actually using the function call for ourselves!!
 
