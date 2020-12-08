@@ -104,6 +104,8 @@ namespace ManiaModManager
 
 			enableDebugConsole.Checked = loaderini.EnableConsole;
 			startingScene.SelectedIndex = loaderini.StartingScene;
+			platformID.SelectedIndex = loaderini.Platform;
+			region.SelectedIndex = loaderini.Region;
 			origMusicPlayerCheckBox.Checked = loaderini.UseOriginalMusicPlayer;
 			speedShoesTempoCheckBox.Checked = loaderini.SpeedShoesTempoChange;
 			blueSpheresTempoCheckBox.Checked = loaderini.BlueSpheresTempoChange;
@@ -802,6 +804,8 @@ namespace ManiaModManager
 
 			loaderini.EnableConsole = enableDebugConsole.Checked;
 			loaderini.StartingScene = startingScene.SelectedIndex;
+			loaderini.Platform = platformID.SelectedIndex;
+			loaderini.Region = region.SelectedIndex;
 			loaderini.UseOriginalMusicPlayer = origMusicPlayerCheckBox.Checked;
 			loaderini.SpeedShoesTempoChange = speedShoesTempoCheckBox.Checked;
 			loaderini.BlueSpheresTempoChange = blueSpheresTempoCheckBox.Checked;

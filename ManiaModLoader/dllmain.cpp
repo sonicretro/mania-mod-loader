@@ -632,12 +632,34 @@ static const HelperFunctions helperFunctions =
 	&_CheckFile
 };
 
+struct SKUInfo {
+	DWORD PlatformID;
+	DWORD Language;
+	DWORD Region;
+};
+
+struct ScreenInfo {
+	WORD FrameBuffer[0x4B000];
+	DWORD XPos;
+	DWORD YPos;
+	DWORD Width;
+	DWORD Height;
+	DWORD ScreenCenterX;
+	DWORD ScreenCenterY;
+	DWORD Pitch;
+	DWORD UnknownA;
+	DWORD UnknownB;
+	DWORD ScreenWidth2;
+	DWORD Height2;
+	DWORD Height3;
+};
+
 struct GameInfo {
-	void* FunctionPtrs;
-	void* UserdataPtrs;
-	void* GameName;
-	void* CurrentSKU;
-	void* CurrentEntity;
+	void* FunctionPtrs; //Array of function ptrs
+	void* UserdataPtrs; //Array of userdata func ptrs
+	char* GameName;
+	SKUInfo* CurrentSKU;
+	void* ActiveEntityInfo;
 	void* ActiveDPad;
 	void* ActiveAnalogStick;
 	void* gap1C;
@@ -645,12 +667,16 @@ struct GameInfo {
 	void* dword24;
 	void* dword28;
 	void* dword2C;
-	void* ScreenInfo;
+	ScreenInfo* ScreenInfo;
 };
 
+SKUInfo skuInfo;
+char* GameName = "";
 DataPointer(HMODULE, GameDLLModule, 0x6ECA10);
 ThiscallFunctionPointer(int, SetupObjects, (GameInfo* GameInfo), 0x1A6E20);
 static int LinkGameLogic(GameInfo* GameInfo) {
+	GameInfo->CurrentSKU = &skuInfo;
+	//GameName = GameInfo->GameName;
 	int result = SetupObjects(GameInfo);
 	RaiseEvents(modLinkEvents); 
 	GameDLLModule = NULL; // Game will try freeing it otherwise
@@ -658,7 +684,7 @@ static int LinkGameLogic(GameInfo* GameInfo) {
 };
 
 HMODULE GetCurrentModule()
-{ // NB: XP+ solution!
+{
 	HMODULE hModule = NULL;
 	GetModuleHandleEx(
 		GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
@@ -1043,6 +1069,15 @@ int InitMods()
 		codes_str.close();
 	}
 
+	skuInfo.PlatformID = settings->getInt("Platform"); //PC
+	if (skuInfo.PlatformID == 4)
+		skuInfo.PlatformID = 0xFF; //dev
+	skuInfo.Region = settings->getInt("Region"); //US
+
+	if (skuInfo.PlatformID == -1)
+		skuInfo.PlatformID = 0; //PC
+	if (skuInfo.Region == -1)
+		skuInfo.Region = 0; //US
 
 	//Enable Game.dll logic
 	WriteData<1>((void*)(baseAddress + 0x002FC864), 0x01);
