@@ -672,9 +672,20 @@ struct GameInfo {
 
 SKUInfo skuInfo;
 char* GameName = "";
+bool changedPlatform = true;
+bool changedRegion = true;
 DataPointer(HMODULE, GameDLLModule, 0x6ECA10);
 ThiscallFunctionPointer(int, SetupObjects, (GameInfo* GameInfo), 0x1A6E20);
 static int LinkGameLogic(GameInfo* GameInfo) {
+        int gamePlat = GameInfo->CurrentSKU->PlatformID;
+        skuInfo.Language = GameInfo->CurrentSKU->Language;
+        int gameRegion = GameInfo->CurrentSKU->Region;
+
+        if (!changedPlatform) 
+            skuInfo.PlatformID = gamePlat;
+        if (!changedRegion) 
+            skuInfo.Region = gameRegion;
+
 	GameInfo->CurrentSKU = &skuInfo;
 	//GameName = GameInfo->GameName;
 	int result = SetupObjects(GameInfo);
@@ -1075,9 +1086,9 @@ int InitMods()
 	skuInfo.Region = settings->getInt("Region"); //US
 
 	if (skuInfo.PlatformID == -1)
-		skuInfo.PlatformID = 0; //PC
+		changedPlatform = false;
 	if (skuInfo.Region == -1)
-		skuInfo.Region = 0; //US
+		changedRegion = false;
 
 	//Enable Game.dll logic
 	WriteData<1>((void*)(baseAddress + 0x002FC864), 0x01);
