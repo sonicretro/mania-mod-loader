@@ -362,6 +362,7 @@
             this.region.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.region.FormattingEnabled = true;
             this.region.Items.AddRange(new object[] {
+            "Default",
             "US",
             "JP",
             "EU"});
@@ -375,6 +376,7 @@
             this.platformID.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.platformID.FormattingEnabled = true;
             this.platformID.Items.AddRange(new object[] {
+            "Default",
             "PC",
             "Playstation 4",
             "Xbox One",
