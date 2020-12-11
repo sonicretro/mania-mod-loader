@@ -677,14 +677,17 @@ bool changedRegion = true;
 DataPointer(HMODULE, GameDLLModule, 0x6ECA10);
 ThiscallFunctionPointer(int, SetupObjects, (GameInfo* GameInfo), 0x1A6E20);
 static int LinkGameLogic(GameInfo* GameInfo) {
-	skuInfo.Language = GameInfo->CurrentSKU->Language;
+	//No reason to modify it if we haven't changed anything
+	if (changedPlatform || changedRegion) {
+		skuInfo.Language = GameInfo->CurrentSKU->Language;
 
-	if (!changedPlatform)
-		skuInfo.PlatformID = GameInfo->CurrentSKU->PlatformID;
-	if (!changedRegion)
-		skuInfo.Region = GameInfo->CurrentSKU->Region;
+		if (!changedPlatform)
+			skuInfo.PlatformID = GameInfo->CurrentSKU->PlatformID;
+		if (!changedRegion)
+			skuInfo.Region = GameInfo->CurrentSKU->Region;
 
-	GameInfo->CurrentSKU = &skuInfo;
+		GameInfo->CurrentSKU = &skuInfo;
+	}
 	//GameName = GameInfo->GameName;
 	int result = SetupObjects(GameInfo);
 	RaiseEvents(modLinkEvents);
