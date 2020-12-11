@@ -677,19 +677,17 @@ bool changedRegion = true;
 DataPointer(HMODULE, GameDLLModule, 0x6ECA10);
 ThiscallFunctionPointer(int, SetupObjects, (GameInfo* GameInfo), 0x1A6E20);
 static int LinkGameLogic(GameInfo* GameInfo) {
-        int gamePlat = GameInfo->CurrentSKU->PlatformID;
-        skuInfo.Language = GameInfo->CurrentSKU->Language;
-        int gameRegion = GameInfo->CurrentSKU->Region;
+	skuInfo.Language = GameInfo->CurrentSKU->Language;
 
-        if (!changedPlatform) 
-            skuInfo.PlatformID = gamePlat;
-        if (!changedRegion) 
-            skuInfo.Region = gameRegion;
+	if (!changedPlatform)
+		skuInfo.PlatformID = GameInfo->CurrentSKU->PlatformID;
+	if (!changedRegion)
+		skuInfo.Region = GameInfo->CurrentSKU->Region;
 
 	GameInfo->CurrentSKU = &skuInfo;
 	//GameName = GameInfo->GameName;
 	int result = SetupObjects(GameInfo);
-	RaiseEvents(modLinkEvents); 
+	RaiseEvents(modLinkEvents);
 	GameDLLModule = NULL; // Game will try freeing it otherwise
 	return result;
 };
@@ -1081,14 +1079,19 @@ int InitMods()
 	}
 
 	skuInfo.PlatformID = settings->getInt("Platform"); //PC
-	if (skuInfo.PlatformID == 4)
+	if (skuInfo.PlatformID == 5)
 		skuInfo.PlatformID = 0xFF; //dev
 	skuInfo.Region = settings->getInt("Region"); //US
 
-	if (skuInfo.PlatformID == -1)
+	if (skuInfo.PlatformID == 0)
 		changedPlatform = false;
-	if (skuInfo.Region == -1)
+	else if (skuInfo.PlatformID != 0xFF)
+		skuInfo.PlatformID--;
+
+	if (skuInfo.Region == 0)
 		changedRegion = false;
+	else
+		skuInfo.Region--;
 
 	//Enable Game.dll logic
 	WriteData<1>((void*)(baseAddress + 0x002FC864), 0x01);
