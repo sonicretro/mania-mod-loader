@@ -1,18 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2026
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ManiaModLoader", "ManiaModLoader\ManiaModLoader.vcxproj", "{BF257748-828D-4F9D-BD5D-E9D389F28C03}"
-	ProjectSection(ProjectDependencies) = postProject
-		{EC0293F5-4BCF-46B2-8133-18CAEA141C5B} = {EC0293F5-4BCF-46B2-8133-18CAEA141C5B}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModLoaderCommon", "mod-loader-common\ModLoaderCommon\ModLoaderCommon.vcxproj", "{EC0293F5-4BCF-46B2-8133-18CAEA141C5B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaModManager", "ManiaModManager\ManiaModManager.csproj", "{131FDCC0-1CAA-4A77-972A-6DAFE246B507}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModManagerCommon", "mod-loader-common\ModManagerCommon\ModManagerCommon.csproj", "{4A480502-79B5-4E1E-8D67-16C514BB13CD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ManiaModLoaderEGS", "ManiaModLoaderEGS\ManiaModLoaderEGS.vcxproj", "{BF257748-828D-4F9D-BD5D-E9D389F28C03}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ManiaModLoader", "ManiaModLoader\ManiaModLoader.vcxproj", "{DAC43A3C-6A1A-4755-BDF7-C72FB7201965}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,12 +21,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{BF257748-828D-4F9D-BD5D-E9D389F28C03}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{BF257748-828D-4F9D-BD5D-E9D389F28C03}.Debug|x86.ActiveCfg = Debug|Win32
-		{BF257748-828D-4F9D-BD5D-E9D389F28C03}.Debug|x86.Build.0 = Debug|Win32
-		{BF257748-828D-4F9D-BD5D-E9D389F28C03}.Release|Any CPU.ActiveCfg = Release|Win32
-		{BF257748-828D-4F9D-BD5D-E9D389F28C03}.Release|x86.ActiveCfg = Release|Win32
-		{BF257748-828D-4F9D-BD5D-E9D389F28C03}.Release|x86.Build.0 = Release|Win32
 		{EC0293F5-4BCF-46B2-8133-18CAEA141C5B}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{EC0293F5-4BCF-46B2-8133-18CAEA141C5B}.Debug|x86.ActiveCfg = Debug|Win32
 		{EC0293F5-4BCF-46B2-8133-18CAEA141C5B}.Debug|x86.Build.0 = Debug|Win32
@@ -48,6 +41,18 @@ Global
 		{4A480502-79B5-4E1E-8D67-16C514BB13CD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4A480502-79B5-4E1E-8D67-16C514BB13CD}.Release|x86.ActiveCfg = Release|Any CPU
 		{4A480502-79B5-4E1E-8D67-16C514BB13CD}.Release|x86.Build.0 = Release|Any CPU
+		{BF257748-828D-4F9D-BD5D-E9D389F28C03}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{BF257748-828D-4F9D-BD5D-E9D389F28C03}.Debug|x86.ActiveCfg = Debug|Win32
+		{BF257748-828D-4F9D-BD5D-E9D389F28C03}.Debug|x86.Build.0 = Debug|Win32
+		{BF257748-828D-4F9D-BD5D-E9D389F28C03}.Release|Any CPU.ActiveCfg = Release|Win32
+		{BF257748-828D-4F9D-BD5D-E9D389F28C03}.Release|x86.ActiveCfg = Release|Win32
+		{BF257748-828D-4F9D-BD5D-E9D389F28C03}.Release|x86.Build.0 = Release|Win32
+		{DAC43A3C-6A1A-4755-BDF7-C72FB7201965}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{DAC43A3C-6A1A-4755-BDF7-C72FB7201965}.Debug|x86.ActiveCfg = Debug|Win32
+		{DAC43A3C-6A1A-4755-BDF7-C72FB7201965}.Debug|x86.Build.0 = Debug|Win32
+		{DAC43A3C-6A1A-4755-BDF7-C72FB7201965}.Release|Any CPU.ActiveCfg = Release|Win32
+		{DAC43A3C-6A1A-4755-BDF7-C72FB7201965}.Release|x86.ActiveCfg = Release|Win32
+		{DAC43A3C-6A1A-4755-BDF7-C72FB7201965}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
