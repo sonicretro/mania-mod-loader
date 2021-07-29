@@ -182,13 +182,13 @@ struct HelperFunctions
 
 
 // define function and variable pointers here
-DataPointer(bool, UseDataPack, 0x00223303);
-DataPointer(bool, ConsoleEnabled, 0x0022331F);
+DataPointer(bool, UseDataPack, 0x0022434B);
+DataPointer(bool, ConsoleEnabled, 0x00224367);
 
-DataPointer(float, MusicVolume, 0x00A0ABC4);
+DataPointer(float, MusicVolume, 0x00A0BC0C);
 //DataPointer(PlayerData, Player1Data, 0x00469A10);
 //DataPointer(PlayerData, Player2Data, 0x00469E68);
-DataPointer(unsigned char, SceneID, 0x00A0B0AC);
+DataPointer(unsigned char, SceneID, 0x00A0C0F8);
 //DataPointer(int, TimerCentiframes, 0x00A535B8);
 //DataPointer(int, DebugEnabled, 0x00A535D4);
 //DataPointer(int, UpdateTimer, 0x00A535DC);
@@ -200,7 +200,7 @@ DataPointer(unsigned char, SceneID, 0x00A0B0AC);
 //FunctionPointer(int, PlaySoundFX, (_WORD wavIndex, int a2, _BYTE playLength), 0x001BC390);
 //FunctionPointer(_WORD, GetSoundFXID, (const char *name), 0x001BC2F0);
 
-FunctionPointer(int, PrintDebug, (const char* fmt, ...), 0x1C0370);
+FunctionPointer(int, PrintDebug, (const char* fmt, ...), 0x1C0480);
 //#define PrintDebug printf
 //
 //VoidFunc(InitPlayer, 0x000C33F0);
@@ -213,5 +213,5 @@ FunctionPointer(int, PrintDebug, (const char* fmt, ...), 0x1C0370);
 //VoidFunc(Sonic_CheckDoPeelOut, 0x000C8FF0);
 //VoidFunc(ERZSuperSonic_JumpAbilities, 0x000C2340);
 //FastcallFunctionPointer(void, HashFilename, (char *filename, int *hash), 0x1CB620);
-VoidFunc(MainGameLoop, 0x001C3590);
+VoidFunc(MainGameLoop, 0x001C36A0);
 //VoidFunc(IncrementTimer, 0x001F2600);

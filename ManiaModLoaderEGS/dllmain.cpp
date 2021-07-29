@@ -99,8 +99,8 @@ int CheckFile_i(char *buf)
 	return !UseDataPack;
 }
 
-int loc_LoadFile = (baseAddress + 0x1C0BBE);
-int loc_LoadDataPack = (baseAddress + 0x1C0B98);
+int loc_LoadFile = (baseAddress + 0x1C0CCE);
+int loc_LoadDataPack = (baseAddress + 0x1C0CA8);
 __declspec(naked) void CheckFile()
 {
 	__asm
@@ -170,7 +170,7 @@ struct VGMStreamLoopPos
 	int end;
 };
 
-void *DecryptBytes_ptr = (void*)(baseAddress + 0x001C0E40);
+void *DecryptBytes_ptr = (void*)(baseAddress + 0x001C0F50);
 int DecryptBytes(fileinfo *file, void *buffer, int bufferSize)
 {
 	int result;
@@ -186,7 +186,7 @@ int DecryptBytes(fileinfo *file, void *buffer, int bufferSize)
 }
 
 
-void *LoadFile_ptr = (void*)(baseAddress + 0x001C0B50);
+void *LoadFile_ptr = (void*)(baseAddress + 0x001C0C60);
 __declspec(dllexport) int LoadFile(char *filename, fileinfo *info, void* unknown)
 {
 	int result;
@@ -203,13 +203,13 @@ __declspec(dllexport) int LoadFile(char *filename, fileinfo *info, void* unknown
 
 __declspec(dllexport) int ReadBytesFromFile(fileinfo* file, void* buffer, int bytes)
 {
-	int bytesRead = (*(decltype(fread)**)(baseAddress + 0x00205428))(buffer, 1, bytes, file->File);
+	int bytesRead = (*(decltype(fread)**)(baseAddress + 0x00206428))(buffer, 1, bytes, file->File);
 	if (file->IsEncrypted)
 		DecryptBytes(file, buffer, bytes);
 	return bytesRead;
 }
 
-DataArray(struct_0, stru_223330, 0x00223330, 16);
+DataArray(struct_0, stru_223330, 0x00224378, 16);
 DWORD basschan;
 QWORD loopPoint;
 char *musicbuf = nullptr;
@@ -358,7 +358,7 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int slot, int a3, unsigned i
 			ReadBytesFromFile(&fi, musicbuf, fi.FileSize);
 			if (fi.File)
 			{
-				(*(decltype(fclose)**)(baseAddress + 0x0020540C))(fi.File);
+				(*(decltype(fclose)**)(baseAddress + 0x0020640C))(fi.File);
 				fi.File = nullptr;
 			}
 			useloop = loopstart > 0;
@@ -393,8 +393,8 @@ int __cdecl PlayMusicFile_BASS(char *name, unsigned int slot, int a3, unsigned i
 	{
 		basschan = BASS_FX_TempoCreate(basschan, BASS_FX_FREESOURCE);
 		// Stream opened!
-		stru_223330[slot].anonymous_0 = *(int*)(baseAddress + 0x00A14710);
-		stru_223330[slot].anonymous_4 = *(int*)(baseAddress + 0x00A14714);
+		stru_223330[slot].anonymous_0 = *(int*)(baseAddress + 0x00A15760);
+		stru_223330[slot].anonymous_4 = *(int*)(baseAddress + 0x00A15764);
 		*(_DWORD *)&stru_223330[slot].anonymous_8 = 0x3FF00FF;
 		stru_223330[slot].hasLoop = useloop;
 		stru_223330[slot].anonymous_5 = 0;
@@ -437,21 +437,21 @@ void SlowDownMusic()
 	BASS_ChannelSetAttribute(basschan, BASS_ATTRIB_TEMPO, 0);
 }
 
-VoidFunc(ResumeSound, 0x001B7CB0);
+VoidFunc(ResumeSound, 0x001B7DA0);
 void ResumeSound_BASS()
 {
 	BASS_ChannelPlay(basschan, false);
 	ResumeSound();
 }
 
-VoidFunc(PauseSound, 0x001B7C50);
+VoidFunc(PauseSound, 0x001B7D40);
 void PauseSound_BASS()
 {
 	BASS_ChannelPause(basschan);
 	PauseSound();
 }
 
-FunctionPointer(void, ChangeMusicSpeed, (int slot, float volume, float Channelbalance, float PlaybackSpeed), 0x001B7B20);
+FunctionPointer(void, ChangeMusicSpeed, (int slot, float volume, float Channelbalance, float PlaybackSpeed), 0x001B7C10);
 void ChangeMusicSpeed_BASS(int slot, float volume, float Channelbalance, float PlaybackSpeed)
 {
 	if (ConsoleEnabled)
@@ -486,8 +486,8 @@ __declspec(naked) int MainGameLoop_w(int a1, int a2)
 }
 
 
-DataPointer(double, VideoPlayer_Position, 0x00A5F058);
-DataPointer(MusicInfo *, MusicSlots, 0xA7E86C);
+DataPointer(double, VideoPlayer_Position, 0x00A600A8);
+DataPointer(MusicInfo *, MusicSlots, 0xA7F8C4);
 static void __cdecl ProcessCodes(int a1, int a2)
 {
 	codeParser.processCodeList();
@@ -570,7 +570,7 @@ static __declspec(naked) void HookScreenUpdate()
 	}
 }
 
-static int loc_HookScreenDrawUpdateReturn = baseAddress + 0x00052EC1;
+static int loc_HookScreenDrawUpdateReturn = baseAddress + 0x00052EC1; // Not updated
 static __declspec(naked) void HookScreenDrawUpdate()
 {
 	__asm
@@ -588,7 +588,7 @@ static __declspec(naked) void HookScreenDrawUpdate()
 }
 
 string savepath;
-StdcallFunctionPointer(int, TryLoadUserFile, (const char *filename, void *buffer, unsigned int bufSize, int(__cdecl *setStatus)(int)), 0x001E92E0);
+StdcallFunctionPointer(int, TryLoadUserFile, (const char *filename, void *buffer, unsigned int bufSize, int(__cdecl *setStatus)(int)), 0x001E9520);
 int __stdcall TryLoadUserFile_r(const char *filename, void *buffer, unsigned int bufSize, int (__cdecl *setStatus)(int))
 {
 	if (ConsoleEnabled)
@@ -704,8 +704,8 @@ SKUInfo skuInfo;
 char* GameName = "";
 bool changedPlatform = true;
 bool changedRegion = true;
-DataPointer(HMODULE, GameDLLModule, 0x3F4F2C);
-ThiscallFunctionPointer(int, SetupObjects, (GameInfo* GameInfo), 0x1A4D30);
+DataPointer(HMODULE, GameDLLModule, 0x3F5F74);
+ThiscallFunctionPointer(int, SetupObjects, (GameInfo* GameInfo), 0x1A4E20);
 static int LinkGameLogic(GameInfo* GameInfo) {
 	//No reason to modify it if we haven't changed anything
 	if (changedPlatform || changedRegion) {
@@ -736,24 +736,24 @@ HMODULE GetCurrentModule()
 	return hModule;
 }
 
-FastcallFunctionPointer(int, SetupWindow, (HINSTANCE hInstance, int nCmdShow), 0x1FEF30);
+FastcallFunctionPointer(int, SetupWindow, (HINSTANCE hInstance, int nCmdShow), 0x1FF270);
 int __fastcall ForceEGSWarning(HINSTANCE hInstance, int nCmdShow)
 {
-	char* windowTitle = (char*)(baseAddress + 0x002B4780);
+	char* windowTitle = (char*)(baseAddress + 0x002B57C8);
 
 	strcat(windowTitle, " (EGS)");
 	return SetupWindow(hInstance, nCmdShow);
 }
 
-FunctionPointer(int, sub_1DF450, (), 0x1DF450);
+FunctionPointer(int, sub_1DF5A0, (), 0x1DF5A0);
 int InitMods()
 {
-	int result = sub_1DF450();
+	int result = sub_1DF5A0();
 	HookDirect3D();
 	if (ConsoleEnabled)
 	{
 		// Tells Mania to send the output to stdout instead of the Debugger
-		WriteData((bool*)(baseAddress + 0x002232FF), true);
+		WriteData((bool*)(baseAddress + 0x00224347), true);
 	}
 	FILE *f_ini = _wfopen(L"mods\\ManiaModLoader.ini", L"r");
 	if (!f_ini)
@@ -803,29 +803,29 @@ int InitMods()
 	if (!settings->getBool("UseOriginalMusicPlayer") && BASS_Init(-1, 44100, 0, nullptr, nullptr))
 	{
 		enablevgmstream = true;
-		WriteJump((void*)(baseAddress + 0x001B7940), PlayMusicFile_BASS);
-		WriteData((char*)(baseAddress + 0x001B7D10), (char)0xC3);
+		WriteJump((void*)(baseAddress + 0x001B7A30), PlayMusicFile_BASS);
+		WriteData((char*)(baseAddress + 0x001B7E00), (char)0xC3);
 		//WriteData((char*)0x4016A9, (char)0xB8);//
 		//WriteData((int*)0x4016AA, 1);//
 		//WriteJump((void*)0x4016AE, (void*)0x4016C3);//
 		//WriteData((char*)0x401AD9, (char)0xEB);//
 		//WriteJump((void*)0x401B7A, (void*)0x401BB4);//
 		//WriteJump((void*)0x401C1D, (void*)0x401C39);//
-		WriteJump((void*)(baseAddress + 0x001C41C5), PauseSound_BASS);
-		WriteCall((void*)(baseAddress + 0x001FF3FD), PauseSound_BASS);
-		WriteJump((void*)(baseAddress + 0x001C41E7), ResumeSound_BASS);
-		WriteCall((void*)(baseAddress + 0x001FF41E), ResumeSound_BASS);
+		WriteJump((void*)(baseAddress + 0x001C42D5), PauseSound_BASS);
+		WriteCall((void*)(baseAddress + 0x001FF761), PauseSound_BASS);
+		WriteJump((void*)(baseAddress + 0x001C42F7), ResumeSound_BASS);
+		WriteCall((void*)(baseAddress + 0x001FF782), ResumeSound_BASS);
 		//WriteCall((void*)0x5CAE95, PauseSound);
 		//WriteCall((void*)0x5CAEB6, ResumeSound);
-		WriteData((char*)(baseAddress + 0x001F9787), (char)0xEB);
-		WriteData((char*)(baseAddress + 0x001B78AE), (char)0xEB);
-		WriteData<8>((void*)(baseAddress + 0x001F97D6), 0x90);
-		*(void**)(baseAddress + 0x00A30960) = ChangeMusicSpeed_BASS;
+		WriteData((char*)(baseAddress + 0x001F99C7), (char)0xEB);
+		WriteData((char*)(baseAddress + 0x001B799E), (char)0xEB);
+		WriteData<8>((void*)(baseAddress + 0x001F9A16), 0x90);
+		*(void**)(baseAddress + 0x00A319B0) = ChangeMusicSpeed_BASS;
 		speedshoestempo = settings->getBool("SpeedShoesTempoChange");
 		bluespheretempo = settings->getBool("BlueSpheresTempoChange");
 	}
 	else
-		musictramp = new Trampoline((baseAddress + 0x1B7940), (baseAddress + 0x1B7946), PlayMusicFile_Normal);
+		musictramp = new Trampoline((baseAddress + 0x1B7A30), (baseAddress + 0x1B7A36), PlayMusicFile_Normal);
 
 	vector<std::pair<ModInitFunc, string>> initfuncs;
 	vector<std::pair<ModInitFunc, string>> postinitfuncs;
@@ -995,11 +995,11 @@ int InitMods()
 
 	if (!savepath.empty())
 	{
-		WriteCall((void*)(baseAddress + 0x1B96EF), TryLoadUserFile_r);
-		WriteCall((void*)(baseAddress + 0x1E8BD7), TryLoadUserFile_r);
-		WriteCall((void*)(baseAddress + 0x1B9712), TrySaveUserFile_r);
-		WriteCall((void*)(baseAddress + 0x1E8917), TrySaveUserFile_r);
-		WriteCall((void*)(baseAddress + 0x1B9720), TryDeleteUserFile_r);
+		WriteCall((void*)(baseAddress + 0x1B980F), TryLoadUserFile_r);
+		WriteCall((void*)(baseAddress + 0x1E8E17), TryLoadUserFile_r);
+		WriteCall((void*)(baseAddress + 0x1B9832), TrySaveUserFile_r);
+		WriteCall((void*)(baseAddress + 0x1E8B57), TrySaveUserFile_r);
+		WriteCall((void*)(baseAddress + 0x1B9849), TryDeleteUserFile_r);
 	}
 
 	if (!errors.empty())
@@ -1132,12 +1132,12 @@ int InitMods()
 	else
 		skuInfo.Region--;
 	//Enable Game.dll logic
-	WriteData<1>((void*)(baseAddress + 0x00223302), 0x01);
+	WriteData<1>((void*)(baseAddress + 0x0022434A), 0x01);
 	GameDLLModule = GetCurrentModule(); //Done so the game thinks we're giving it a game.dll
-	WriteCall((void*)(baseAddress + 0x1FE891), LinkGameLogic); // but we're actually using the function call for ourselves!!
+	WriteCall((void*)(baseAddress + 0x1FEB61), LinkGameLogic); // but we're actually using the function call for ourselves!!
 
-	WriteJump((void*)(baseAddress + 0x1C0B8F), CheckFile);
-	WriteCall((void*)(baseAddress + 0x1FEAB3), ProcessCodes_w);
+	WriteJump((void*)(baseAddress + 0x1C0C9F), CheckFile);
+	WriteCall((void*)(baseAddress + 0x1FEDC4), ProcessCodes_w);
 
 	// TODO: Fix ScreenUpdate and ScreenDrawUpdate
 	// ScreenUpdate
@@ -1148,7 +1148,7 @@ int InitMods()
 	//WriteJump((void*)(baseAddress + 0x00052EB8), HookScreenDrawUpdate);
 	
 	// EGS
-	WriteCall((void*)(baseAddress + 0x001FE8C0), ForceEGSWarning);
+	WriteCall((void*)(baseAddress + 0x001FEB90), ForceEGSWarning);
 
 	// Run post init to all mods after the mod loader has finished starting up
 	for (auto& postinitfunc : postinitfuncs)
@@ -1157,7 +1157,7 @@ int InitMods()
 	return result;
 }
 
-static const uint8_t verchk[] = { 0xE8u, 0xD8u, 0x4A, 0xFCu, 0xFFu, 0x83u, 0x3D, 0xF4u };
+static const uint8_t verchk[] = { 0xE8u, 0xD7u, 0x48, 0xFCu, 0xFFu, 0x83u, 0x3D, 0x3Cu };
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
@@ -1166,12 +1166,14 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		if (memcmp(verchk, (const char *)(baseAddress + 0x1FEAB3), sizeof(verchk)) != 0)
+		if (memcmp(verchk, (const char *)(baseAddress + 0x1FEDC4), sizeof(verchk)) != 0)
 			MessageBox(nullptr, L"The mod loader was not designed for this version of the game.\n\nPlease check for an updated version of the loader.\n\nMod functionality will be disabled.", L"Mania Mod Loader for EGS", MB_ICONWARNING);
 		else
 		{
-			WriteData((short*)(baseAddress + 0x1FB61D), (short)0x01B0); // Enable basic testing without EGS
-			WriteCall((void*)(baseAddress + 0x1FE5AE), InitMods);
+			//WriteData((short*)(baseAddress + 0x1FB8D3), (short)0x01B0); // Enable basic testing without EGS
+			//WriteData((char*)(baseAddress + 0x1FB3CE), (char)0xEB);
+			//WriteJump((void*)(baseAddress + 0x1FB807), (void*)(baseAddress + 0x1FB89B));
+			WriteCall((void*)(baseAddress + 0x1FE87E), InitMods);
 		}
 		break;
 	case DLL_PROCESS_DETACH:
