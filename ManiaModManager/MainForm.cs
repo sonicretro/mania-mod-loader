@@ -30,9 +30,11 @@ namespace ManiaModManager
 		const string datadllpath = "d3d9.dll";
 		const string loaderinipath = "mods/ManiaModLoader.ini";
 		const string loaderdllpath = "mods/ManiaModLoader.dll";
+		const string loaderegsdllpath = "mods/ManiaModLoaderEGS.dll";
 		ManiaLoaderInfo loaderini;
 		Dictionary<string, ManiaModInfo> mods;
 		const string codelstpath = "mods/Codes.lst";
+		const string codelegsstpath = "mods/CodesEGS.lst";
 		const string codexmlpath = "mods/Codes.xml";
 		const string codedatpath = "mods/Codes.dat";
 		const string patchdatpath = "mods/Patches.dat";
@@ -40,6 +42,7 @@ namespace ManiaModManager
 		List<Code> codes;
 		bool installed;
 		bool suppressEvent;
+		Platform platform = Platform.Steam;
 
 		readonly ModUpdater modUpdater = new ModUpdater();
 		BackgroundWorker updateChecker;
@@ -85,10 +88,25 @@ namespace ManiaModManager
 			SetDoubleBuffered(modListView, true);
 			loaderini = File.Exists(loaderinipath) ? IniSerializer.Deserialize<ManiaLoaderInfo>(loaderinipath) : new ManiaLoaderInfo();
 
+			if (File.Exists("EOSSDK-Win32-Shipping.dll"))
+				platform = Platform.EGS;
+
+			if (platform == Platform.EGS && !loaderini.WarningShown)
+			{
+				MessageBox.Show(this, "EGS version of Sonic Mania has been detected.\n" +
+					"Keep in mind not all mods will work correctly on this version.\n\n" +
+					"Please see the ManiaModLoader GameBanana page for more information.", 
+					"Mania Mod Loader", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				loaderini.WarningShown = true;
+			}
+
+			// Show game platform on the title
+			Text += $" ({platform})";
+
 			try
 			{
 				if (File.Exists(codelstpath))
-					mainCodes = CodeList.Load(codelstpath);
+					mainCodes = CodeList.Load(platform == Platform.Steam ? codelstpath : codelegsstpath);
 				else if (File.Exists(codexmlpath))
 					mainCodes = CodeList.Load(codexmlpath);
 				else
@@ -104,6 +122,8 @@ namespace ManiaModManager
 
 			enableDebugConsole.Checked = loaderini.EnableConsole;
 			startingScene.SelectedIndex = loaderini.StartingScene;
+			platformID.SelectedIndex = loaderini.Platform;
+			region.SelectedIndex = loaderini.Region;
 			origMusicPlayerCheckBox.Checked = loaderini.UseOriginalMusicPlayer;
 			speedShoesTempoCheckBox.Checked = loaderini.SpeedShoesTempoChange;
 			blueSpheresTempoCheckBox.Checked = loaderini.BlueSpheresTempoChange;
@@ -274,7 +294,7 @@ namespace ManiaModManager
 				installButton.Text = "Uninstall loader";
 				using (MD5 md5 = MD5.Create())
 				{
-					byte[] hash1 = md5.ComputeHash(File.ReadAllBytes(loaderdllpath));
+					byte[] hash1 = md5.ComputeHash(File.ReadAllBytes(platform == Platform.Steam ? loaderdllpath : loaderegsdllpath));
 					byte[] hash2 = md5.ComputeHash(File.ReadAllBytes(datadllpath));
 
 					if (!hash1.SequenceEqual(hash2))
@@ -283,7 +303,7 @@ namespace ManiaModManager
 							+ "\n\nDo you want to overwrite the installed copy?", Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
 						if (result == DialogResult.Yes)
-							File.Copy(loaderdllpath, datadllpath, true);
+							File.Copy(platform == Platform.Steam ? loaderdllpath : loaderegsdllpath, datadllpath, true);
 					}
 				}
 			}
@@ -867,6 +887,8 @@ namespace ManiaModManager
 
 			loaderini.EnableConsole = enableDebugConsole.Checked;
 			loaderini.StartingScene = startingScene.SelectedIndex;
+			loaderini.Platform = platformID.SelectedIndex;
+			loaderini.Region = region.SelectedIndex;
 			loaderini.UseOriginalMusicPlayer = origMusicPlayerCheckBox.Checked;
 			loaderini.SpeedShoesTempoChange = speedShoesTempoCheckBox.Checked;
 			loaderini.BlueSpheresTempoChange = blueSpheresTempoCheckBox.Checked;
@@ -1017,7 +1039,7 @@ namespace ManiaModManager
 					case DialogResult.Cancel:
 						return;
 					case DialogResult.Yes:
-						File.Copy(loaderdllpath, datadllpath);
+						File.Copy(platform == Platform.Steam ? loaderdllpath : loaderegsdllpath, datadllpath);
 						break;
 				}
 			System.Text.StringBuilder sb = new System.Text.StringBuilder();
@@ -1045,7 +1067,7 @@ namespace ManiaModManager
 			}
 			else
 			{
-				File.Copy(loaderdllpath, datadllpath);
+				File.Copy(platform == Platform.Steam ? loaderdllpath : loaderegsdllpath, datadllpath);
 				installButton.Text = "Uninstall loader";
 			}
 			installed = !installed;
